@@ -39,8 +39,8 @@ Shader::Shader(const GLchar* vertexPath,const GLchar* fragmentPath){
   GLint Result = GL_FALSE;
   int InfoLogLength;
 
-  printf("Compiling shader:%s\n",vertex_file_path);
-  char const* VertexSourcePointer = VertexCode.c_str();
+  printf("Compiling shader:%s\n",vertexPath);
+  char const* VertexSourcePointer = vertexCode.c_str();
   glShaderSource(VertexShaderID,1,&VertexSourcePointer,NULL);
 
   glCompileShader(VertexShaderID);
@@ -55,8 +55,8 @@ Shader::Shader(const GLchar* vertexPath,const GLchar* fragmentPath){
   }
 
 
-  printf("Compiling shader:%s\n",fragment_file_path);
-  char const* FragmentSourcePointer = FragmentCode.c_str();
+  printf("Compiling shader:%s\n",fragmentPath);
+  char const* FragmentSourcePointer = fragmentCode.c_str();
   glShaderSource(FragmentShaderID,1,&FragmentSourcePointer,NULL);
 
   glCompileShader(FragmentShaderID);
@@ -72,16 +72,16 @@ Shader::Shader(const GLchar* vertexPath,const GLchar* fragmentPath){
 
   printf("Linking Program\n");
   ID = glCreateProgram();
-  glAttachShader(ProgramID,VertexShaderID);
-  glAttachShader(ProgramID,FragmentShaderID);
+  glAttachShader(ID,VertexShaderID);
+  glAttachShader(ID,FragmentShaderID);
 
-  glLinkProgram(ProgramID);
+  glLinkProgram(ID);
 
-  glGetProgramiv(ProgramID,GL_LINK_STATUS,&Result);
-  glGetProgramiv(ProgramID,GL_INFO_LOG_LENGTH,&InfoLogLength);
+  glGetProgramiv(ID,GL_LINK_STATUS,&Result);
+  glGetProgramiv(ID,GL_INFO_LOG_LENGTH,&InfoLogLength);
   if(InfoLogLength > 0){
         std::vector<char> ProgramErrorMessage(InfoLogLength+1);
-    glGetShaderInfoLog(ProgramID,InfoLogLength,NULL,&ProgramErrorMessage[0]);
+    glGetShaderInfoLog(ID,InfoLogLength,NULL,&ProgramErrorMessage[0]);
     printf("%s",&ProgramErrorMessage[0]);
   }
 
@@ -97,7 +97,7 @@ void Shader::use(){
   glUseProgram(ID);
 }
 
-void Shader::setBool(const std::string& name,bool value){
+void Shader::setBool(const std::string& name,bool value)const{
   glUniform1i(glGetUniformLocation(ID,name.c_str()),(int)value);
 }
 
@@ -107,4 +107,8 @@ void Shader::setInt(const std::string& name,int value){
 
 void Shader::setFloat(const std::string& name,float value){
   glUniform1f(glGetUniformLocation(ID,name.c_str()),value);
+}
+
+void Shader::setMat4(const std::string& name,const glm::mat4& mat){
+  glUniformMatrix4fv(glGetUniformLocation(ID,name.c_str()),1,GL_FALSE,&mat[0][0]);
 }

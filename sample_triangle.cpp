@@ -229,13 +229,17 @@ int main(){
 	// bind element buffer and fill data of indices in that
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,EBO);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER,sizeof(indices),indices,GL_STATIC_DRAW);
-	
+
+	// enable several attributes of the vertex buffer which contains the array 'vertices' with different attributes
+	// enable all the vertex co-ordinates
 	glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,8*sizeof(float),(void*)0);
 	glEnableVertexAttribArray(0);
 
+	// enable all the color RGB values corresponding to the vertices
 	glVertexAttribPointer(1,3,GL_FLOAT,GL_FALSE,8*sizeof(float),(void*)(3*sizeof(float)));
 	glEnableVertexAttribArray(1);
 
+	// enable all the texture co-ordinates 
 	glVertexAttribPointer(2,2,GL_FLOAT,GL_FALSE,8*sizeof(float),(void*)(6*sizeof(float)));
 	glEnableVertexAttribArray(2);	
 	
@@ -247,15 +251,19 @@ int main(){
 	int width,height,nrChannels;
 
 	stbi_set_flip_vertically_on_load(true);
+
+	// generate texture 1
 	glGenTextures(1,&texture1);
 	glBindTexture(GL_TEXTURE_2D,texture1);
 
+	// set the texture 1 properties
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
 
-	
+
+	// uploading the image data of the texture 1
 	unsigned char* data1 = stbi_load("brickwall.jpg",&width,&height,&nrChannels,0);
 	if(data1){
 	  	glTexImage2D(GL_TEXTURE_2D,0,GL_RGB,width,height,0,GL_RGB,GL_UNSIGNED_BYTE,data1);
@@ -263,17 +271,19 @@ int main(){
 	}else{
 	  std::cout<<"Could not load texture1 image"<<std::endl;
 	}
-	stbi_image_free(data1);
+	stbi_image_free(data1);//free the buffer
 
+	// generate texture 2
 	glGenTextures(1,&texture2);
 	glBindTexture(GL_TEXTURE_2D,texture2);
-	
+
+	// set the texture 1 properties
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_MIRRORED_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_MIRRORED_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
 	
-
+	// uploading the image data of the texture 2
 	unsigned char* data2 = stbi_load("awesomeface.png",&width,&height,&nrChannels,0);
 	if(data2){
 	  	glTexImage2D(GL_TEXTURE_2D,0,GL_RGB,width,height,0,GL_RGBA,GL_UNSIGNED_BYTE,data2);
@@ -281,9 +291,11 @@ int main(){
 	}else{
 	  std::cout<<"Could not load texture2 image"<<std::endl;
 	}
-	stbi_image_free(data2);
+	stbi_image_free(data2);// free the buffer
 
 	glUseProgram(shaderProgram);
+
+	// set the texture IDs
 	glUniform1i(glGetUniformLocation(shaderProgram,"texture1"),0);
 	glUniform1i(glGetUniformLocation(shaderProgram,"texture2"),1);
 	
