@@ -1,3 +1,7 @@
+/**
+g++ -o perspectiveRendering <capture_cam_render.cpp> stb_image.h shader.hpp  `pkg-config --static --libs glfw3` -lGL -lGLEW
+ **/
+
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
@@ -15,11 +19,15 @@
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow *window);
-const std::string imageFileName = "capture.png";
+
+// here image from camera is in JPEG format stored, but one also try PNG
+const std::string imageFileName = "capture.jpg";
 // settings
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 unsigned int texture1, texture2;
+float mixValue = 0.2f;
+float farPlaneDistance = -70.0f;
 
 
 void* grab_frame(){
@@ -33,14 +41,10 @@ void* grab_frame(){
   }
 
   Mat frame(480,640,CV_8UC4);
-
-  std::vector<int> compression_para;
-  compression_para.push_back(CV_IMWRITE_PNG_COMPRESSION);
-  compression_para.push_back(9);  
   
   cap >> frame;
   try{
-    imwrite(imageFileName,frame,compression_para);
+    imwrite(imageFileName,frame);
   }catch(std::runtime_error& ex){
     std::cout<<"Could not write image data to png file"<<std::endl;
     return 0;
@@ -51,7 +55,7 @@ void* grab_frame(){
 void createTexture(){
 
     grab_frame();
-  
+
     glGenTextures(1, &texture1);
     glBindTexture(GL_TEXTURE_2D, texture1);
     // set the texture wrapping parameters
@@ -60,19 +64,22 @@ void createTexture(){
     // set texture filtering parameters
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
     // load image, create texture and generate mipmaps
     int width, height, nrChannels;
     stbi_set_flip_vertically_on_load(true); 
 
     // uploading the image data of the texture 1
-    unsigned char* data1 = stbi_load(imageFileName.c_str(),&width,&height,&nrChannels,0);
+    unsigned char* data1 = stbi_load("brickwall.jpg",&width,&height,&nrChannels,0);
+    
     if(data1){
-      glTexImage2D(GL_TEXTURE_2D,0,GL_RGB,width,height,0,GL_RGBA,GL_UNSIGNED_BYTE,data1);
+      glTexImage2D(GL_TEXTURE_2D,0,GL_RGB,width,height,0,GL_RGB,GL_UNSIGNED_BYTE,data1);
       glGenerateMipmap(GL_TEXTURE_2D);
     }else{
       std::cout<<"Could not load texture1 image"<<std::endl;
     }
     stbi_image_free(data1);//free the buffer
+
 
     glGenTextures(1, &texture2);
     glBindTexture(GL_TEXTURE_2D, texture2);
@@ -82,11 +89,11 @@ void createTexture(){
     // set texture filtering parameters
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    // load image, create texture and generate mipmaps
-    // uploading the image data of the texture 2
-    unsigned char* data2 = stbi_load("awesomeface.png",&width,&height,&nrChannels,0);
+
+    unsigned char* data2 = stbi_load(imageFileName.c_str(),&width,&height,&nrChannels,0);
+    
     if(data2){
-      glTexImage2D(GL_TEXTURE_2D,0,GL_RGB,width,height,0,GL_RGBA,GL_UNSIGNED_BYTE,data2);
+      glTexImage2D(GL_TEXTURE_2D,0,GL_RGB,width,height,0,GL_RGB,GL_UNSIGNED_BYTE,data2);
       glGenerateMipmap(GL_TEXTURE_2D);
     }else{
       std::cout<<"Could not load texture2 image"<<std::endl;
@@ -95,8 +102,6 @@ void createTexture(){
   
 }
 
-float mixValue = 0.2f;
-float farPlaneDistance = -70.0f;
 int main()
 {
     glfwInit();
@@ -145,35 +150,35 @@ int main()
 
       //front side
       -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-      0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-      0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
-      0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
-      -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
+      0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+      0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+      0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+      -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
       -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
 
       //left side
-      -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
-      -0.5f,  0.5f, -0.5f,  0.0f, 0.0f,
-      -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-      -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+      -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+      -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+      -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+      -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
       -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-      -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
+      -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
 
       //right side
-      0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
-      0.5f,  0.5f, -0.5f,  0.0f, 0.0f,
-      0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+      0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+      0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+      0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
       0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
       0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-      0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
+      0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
 
       //bottom side
-      -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-      0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-      0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-      0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+      -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+      0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
+      0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+      0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
       -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-      -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+      -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
 
       //top side
       -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
@@ -207,9 +212,6 @@ int main()
     // texture coord attribute
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
-
-
-
 
     //    ourShader.use();
     //    ourShader.setInt("texture1", 0);
@@ -305,8 +307,11 @@ void processInput(GLFWwindow *window)
 
     if(glfwGetKey(window,GLFW_KEY_SPACE) == GLFW_PRESS){
       createTexture();
-      glActiveTexture(GL_TEXTURE0);
-      glBindTexture(GL_TEXTURE_2D, texture1);
+      //      glActiveTexture(GL_TEXTURE0);
+      //      glBindTexture(GL_TEXTURE_2D, texture1);
+
+      glActiveTexture(GL_TEXTURE1);
+      glBindTexture(GL_TEXTURE_2D, texture2);
 
     }    
 }
