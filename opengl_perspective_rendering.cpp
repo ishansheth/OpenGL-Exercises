@@ -43,6 +43,7 @@ const unsigned int SCR_HEIGHT = 600;
 
 float mixValue = 0.2f;
 float farPlaneDistance = -70.0f;
+
 int main()
 {
     glfwInit();
@@ -60,6 +61,9 @@ int main()
     glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
+    /**
+       openGL stores all of its depth information in a z-buffer, which is also known as depth buffer. The depth is stored within each fragment and whenever fragment wants to output its color, openGL compares its depth values with the z-buffer and if current fragment is behind the other fragment, it is discarded, otherwise overwritten. This process is called depth testing. For this, we have to tell openGL to perform depth testing. We can do that by 'glEnable(GL_DEPTH_TEST)'. In this, we want depth test to be enabled for the cube rendering. So we use that.
+     **/
     glEnable(GL_DEPTH_TEST);
     
     if (glewInit() != GLEW_OK) {
@@ -70,7 +74,7 @@ int main()
     }
 
     Shader ourShader("coordinateSystem.vs", "coordinateSystem.fs");
-
+1
     glm::vec3 cubePosition[] = {
       glm::vec3(0.0f,0.0f,0.0f),
       glm::vec3(2.0f,5.0f,-15.0f),
@@ -84,13 +88,6 @@ int main()
       glm::vec3(-1.3f,1.0f,-1.5f)
     };
     
-    float vertices[] = {
-        // positions          // texture coords
-         0.0f,  0.5f, 0.5f,   1.0f, 1.0f, // top right
-         0.0f, 0.5f, -0.5f,   1.0f, 0.0f, // bottom right
-         0.0f, -0.5f, -0.5f,   0.0f, 0.0f, // bottom left
-         0.0f,  -0.5f, 0.5f,   0.0f, 1.0f  // top left 
-    };
 
     /**
        when you draw a cube, and use EBO, you will see some weird texture on each side  and not cube with texture. 
@@ -153,22 +150,15 @@ int main()
       -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
     };
     
-    unsigned int indices[] = {
-        0, 1, 3, // first triangle
-        1, 2, 3  // second triangle
-    };
     unsigned int VBO, VAO, EBO;
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
-    glGenBuffers(1, &EBO);
 
     glBindVertexArray(VAO);
 
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(cubeVertices), cubeVertices, GL_STATIC_DRAW);
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
     // position attribute
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
@@ -201,8 +191,6 @@ int main()
     }
     stbi_image_free(data1);//free the buffer
 
-    // texture 2
-    // ---------
     glGenTextures(1, &texture2);
     glBindTexture(GL_TEXTURE_2D, texture2);
     // set the texture wrapping parameters
@@ -280,7 +268,6 @@ int main()
         glUniformMatrix4fv(projLoc, 1, GL_FALSE, &projection[0][0]);
 
         glBindVertexArray(VAO);
-	//	        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
@@ -288,7 +275,6 @@ int main()
 
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
-    glDeleteBuffers(1, &EBO);
 
     glfwTerminate();
     return 0;
