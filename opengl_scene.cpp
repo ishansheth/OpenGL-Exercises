@@ -26,6 +26,33 @@ float farPlaneDistance = -70.0f;
 float rotationAngle;
 bool rotate = true;
 
+glm::vec3 camPos = glm::vec3(0.0f,0.0f,50.0f);
+glm::vec3 camFront = glm::vec3(0.0f,0.0f,-1.0f);
+glm::vec3 camUp = glm::vec3(0.0f,1.0f,0.0f);
+
+
+bool firstMouse = true;
+float yaw = -90.0f;
+float pitch = 0.0f;
+float lastX = 800.0f / 2.0f;
+float lastY = 600.0f / 2.0f;
+float fov = 45.0f;
+
+float deltaTime = 0.0f;
+float lastFrame = 0.0f;
+
+void setVerticesProp(unsigned int* VAO,unsigned int* VBO, float* vertexArray,unsigned int arraysize){  
+  glGenVertexArrays(1,VAO);
+  glGenBuffers(1,VBO);    
+  glBindVertexArray(*VAO);    
+  glBindBuffer(GL_ARRAY_BUFFER,*VBO);    
+  glBufferData(GL_ARRAY_BUFFER,arraysize,vertexArray,GL_STATIC_DRAW);		
+  glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,5*sizeof(float),(void*)0);
+  glEnableVertexAttribArray(0);    
+  glVertexAttribPointer(1,2,GL_FLOAT,GL_FALSE,5*sizeof(float),(void*)(3*sizeof(float)));
+  glEnableVertexAttribArray(1);
+}
+
 int main(){
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -57,7 +84,7 @@ int main(){
 
     Shader smallCubeShader("coloredCubeObject.vs","coloredCubeObject.fs");
 
-    float cubeVertices[] = {
+    float cubeVerticesback[] = {
       // back side
       -20.5f, -20.5f, -50.5f,  0.0f, 0.0f,
       20.5f, -20.5f, -50.5f,  1.0f, 0.0f,
@@ -65,7 +92,8 @@ int main(){
       20.5f,  20.5f, -50.5f,  1.0f, 1.0f,
       -20.5f,  20.5f, -50.5f,  0.0f, 1.0f,
       -20.5f, -20.5f, -50.5f,  0.0f, 0.0f,
-
+    };
+    float cubeVerticesfront[]={
       //front side
       -20.5f, -20.5f,  50.5f,  0.0f, 0.0f,
       20.5f, -20.5f,  50.5f,  1.0f, 0.0f,
@@ -73,7 +101,8 @@ int main(){
       20.5f,  20.5f,  50.5f,  1.0f, 1.0f,
       -20.5f,  20.5f,  50.5f,  0.0f, 1.0f,
       -20.5f, -20.5f,  50.5f,  0.0f, 0.0f,
-
+    };
+    float cubeVerticesleft[]={
       //left side
       -20.5f,  20.5f,  50.5f,  1.0f, 0.0f,
       -20.5f,  20.5f, -50.5f,  1.0f, 1.0f,
@@ -81,7 +110,9 @@ int main(){
       -20.5f, -20.5f, -50.5f,  0.0f, 1.0f,
       -20.5f, -20.5f,  50.5f,  0.0f, 0.0f,
       -20.5f,  20.5f,  50.5f,  1.0f, 0.0f,
+    };
 
+    float cubeVerticesright[]={
       //right side
       20.5f,  20.5f,  50.5f,  1.0f, 0.0f,
       20.5f,  20.5f, -50.5f,  1.0f, 1.0f,
@@ -89,7 +120,9 @@ int main(){
       20.5f, -20.5f, -50.5f,  0.0f, 1.0f,
       20.5f, -20.5f,  50.5f,  0.0f, 0.0f,
       20.5f,  20.5f,  50.5f,  1.0f, 0.0f,
+    };
 
+    float cubeVerticesbottom[]={
       //bottom side
       -20.5f, -20.5f, -50.5f,  0.0f, 1.0f,
       20.5f, -20.5f, -50.5f,  1.0f, 1.0f,
@@ -97,7 +130,9 @@ int main(){
       20.5f, -20.5f,  50.5f,  1.0f, 0.0f,
       -20.5f, -20.5f,  50.5f,  0.0f, 0.0f,
       -20.5f, -20.5f, -50.5f,  0.0f, 1.0f,
+    };
 
+    float cubeVerticestop[]={
       //top side
       -20.5f,  20.5f, -50.5f,  0.0f, 1.0f,
       20.5f,  20.5f, -50.5f,  1.0f, 1.0f,
@@ -159,29 +194,25 @@ int main(){
     };
 
 
-    unsigned int VBO1,VAO1,VBO2,VAO2;
+    unsigned int VBO1,VAO1,VBO2,VAO2,VBO3,VAO3,VBO4,VAO4,VBO5,VAO5,VBO6,VAO6;
+    unsigned int sVAO,sVBO;
+
+    setVerticesProp(&VAO1,&VBO1,cubeVerticesfront,sizeof(cubeVerticesfront));
+    setVerticesProp(&VAO2,&VBO2,cubeVerticesback,sizeof(cubeVerticesback));
+    setVerticesProp(&VAO3,&VBO3,cubeVerticesright,sizeof(cubeVerticesright));
+    setVerticesProp(&VAO4,&VBO4,cubeVerticesleft,sizeof(cubeVerticesleft));
+    setVerticesProp(&VAO5,&VBO5,cubeVerticestop,sizeof(cubeVerticestop));
+    setVerticesProp(&VAO6,&VBO6,cubeVerticesbottom,sizeof(cubeVerticesbottom));
     
-    glGenVertexArrays(1,&VAO1);
-    glGenBuffers(1,&VBO1);    
-    glBindVertexArray(VAO1);    
-    glBindBuffer(GL_ARRAY_BUFFER,VBO1);    
-    glBufferData(GL_ARRAY_BUFFER,sizeof(cubeVertices),cubeVertices,GL_STATIC_DRAW);		
-    glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,5*sizeof(float),(void*)0);
-    glEnableVertexAttribArray(0);    
-    glVertexAttribPointer(1,2,GL_FLOAT,GL_FALSE,5*sizeof(float),(void*)(3*sizeof(float)));
-    glEnableVertexAttribArray(1);
-	
-    glGenVertexArrays(1,&VAO2);
-    glGenBuffers(1,&VBO2);    
-    glBindVertexArray(VAO2);    
-    glBindBuffer(GL_ARRAY_BUFFER,VBO2);    
+    glGenVertexArrays(1,&sVAO);
+    glGenBuffers(1,&sVBO);    
+    glBindVertexArray(sVAO);    
+    glBindBuffer(GL_ARRAY_BUFFER,sVBO);    
     glBufferData(GL_ARRAY_BUFFER,sizeof(smallcubevertices),smallcubevertices,GL_STATIC_DRAW);		
     glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,8*sizeof(float),(void*)0);
     glEnableVertexAttribArray(0);    
-    //    glVertexAttribPointer(1,3,GL_FLOAT,GL_FALSE,6*sizeof(float),(void*)(3*sizeof(float)));
-    //    glEnableVertexAttribArray(1);
 
-    
+
     unsigned int texture1, texture2;
     glGenTextures(1, &texture1);
     glBindTexture(GL_TEXTURE_2D, texture1);
@@ -228,21 +259,16 @@ int main(){
     //    ourShader.use();
  	
     while(!glfwWindowShouldClose(window)){
+
+      float currentFrame = glfwGetTime();
+      deltaTime = currentFrame - lastFrame;
+      lastFrame = currentFrame;
       
       processInput(window);
 
       glClearColor(0.2f,0.3f,0.3f,1.0f);
       glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
       // bind textures on corresponding texture units
-      glActiveTexture(GL_TEXTURE0);
-      glBindTexture(GL_TEXTURE_2D, texture1);
-      glActiveTexture(GL_TEXTURE1);
-      glBindTexture(GL_TEXTURE_2D, texture2);
-  
-      // activate shader
-      ourShader.use();
-      ourShader.setInt("texture1", 0);
-      ourShader.setInt("texture2", 1);
 
       // create transformations
       glm::mat4 view(1.0f);
@@ -251,41 +277,64 @@ int main(){
       glm::mat4 roommodel(1.0f);
       glm::mat4 smallCubeModel(1.0f);
       
+
+      float radius = 10.0f;
+      float camx = sin(glfwGetTime()) * radius;
+      float camz = cos(glfwGetTime()) * radius;
+
       
-      view  = glm::translate(view, glm::vec3(0.0f, 0.0f, -50.0));
+      view  = glm::lookAt(camPos, camPos+camFront,camUp);
       projection = glm::perspective(glm::radians(45.0f), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 200.0f);
       
       //      model = glm::rotate(model,(float)glfwGetTime()*glm::radians(20.0f),glm::vec3(1.0f,0.3f,0.5f));
       smallCubeModel = glm::rotate(smallCubeModel,(float)glfwGetTime()*glm::radians(20.0f),glm::vec3(1.0f,0.3f,0.5f));
-	
-	ourShader.setMat4("model",roommodel);
-	ourShader.setMat4("view",view);
-	ourShader.setMat4("projection",projection);
-	
-	ourShader.setFloat("mixValue",mixValue);
-	
-	//        unsigned int viewLoc  = glGetUniformLocation(ourShader.ID, "view");
-	//	unsigned int projLoc  = glGetUniformLocation(ourShader.ID, "projection");
+      ourShader.use();
+      
+      ourShader.setMat4("model",roommodel);
+      ourShader.setMat4("view",view);
+      ourShader.setMat4("projection",projection);
+      
+      ourShader.setFloat("mixValue",mixValue);
+      
+      // activate shader
+      ourShader.setInt("texture1", 0);      
+      glActiveTexture(GL_TEXTURE0);
+      glBindTexture(GL_TEXTURE_2D, texture1);      
+      
+      glBindVertexArray(VAO1);
+      glDrawArrays(GL_TRIANGLES,0,6);
+      
+      glBindVertexArray(VAO2);
+      glDrawArrays(GL_TRIANGLES,0,6);
 
-	
-        // pass them to the shaders (3 different ways)
-	//       glUniformMatrix4fv(viewLoc, 1, GL_FALSE, &view[0][0]);
-        //glUniformMatrix4fv(projLoc, 1, GL_FALSE, &projection[0][0]);
+      glBindVertexArray(VAO3);
+      glDrawArrays(GL_TRIANGLES,0,6);
 
-        glBindVertexArray(VAO1);
-	glDrawArrays(GL_TRIANGLES,0,36);
+      glBindVertexArray(VAO4);
+      glDrawArrays(GL_TRIANGLES,0,6);
+      
+      ourShader.setInt("texture1", 0);
+      glActiveTexture(GL_TEXTURE0);
+      glBindTexture(GL_TEXTURE_2D, texture2);
 
-	smallCubeShader.use();
-	smallCubeShader.setMat4("model",smallCubeModel);
-	smallCubeShader.setMat4("view",view);
-	smallCubeShader.setMat4("projection",projection);
-	
-	glBindVertexArray(VAO2);
-	glDrawArrays(GL_TRIANGLES,0,36);
 
-        glfwSwapBuffers(window);
-        glfwPollEvents();
-	
+      glBindVertexArray(VAO5);
+      glDrawArrays(GL_TRIANGLES,0,6);
+
+      glBindVertexArray(VAO6);
+      glDrawArrays(GL_TRIANGLES,0,6);
+      
+      smallCubeShader.use();
+      smallCubeShader.setMat4("model",smallCubeModel);
+      smallCubeShader.setMat4("view",view);
+      smallCubeShader.setMat4("projection",projection);
+      
+      glBindVertexArray(sVAO);
+      glDrawArrays(GL_TRIANGLES,0,36);
+      
+      glfwSwapBuffers(window);
+      glfwPollEvents();
+      
     }
 
     glDeleteVertexArrays(1, &VAO1);
@@ -302,29 +351,26 @@ void processInput(GLFWwindow *window){
   if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
     glfwSetWindowShouldClose(window, true);
 
-  if(glfwGetKey(window,GLFW_KEY_UP) == GLFW_PRESS){
-    //      mixValue += 0.001f;
-      farPlaneDistance += 0.2f;
-      
-      //if(mixValue >= 1.0f)
-      //	mixValue = 1.0f;
+    float camSpeed = 2.5 * deltaTime;
+    
+    if(glfwGetKey(window,GLFW_KEY_W) == GLFW_PRESS)
+      camPos += camSpeed * camFront;
 
-      if(farPlaneDistance >= -0.5f)
-	farPlaneDistance = -70.0f;
-    }
+    if(glfwGetKey(window,GLFW_KEY_S) == GLFW_PRESS)
+      camPos -= camSpeed * camFront;
 
-    if(glfwGetKey(window,GLFW_KEY_DOWN) == GLFW_PRESS){
-      //      mixValue -= 0.001f;
-      farPlaneDistance -= 0.2f;
-      
-      //      if(mixValue <= 0.0f)
-      //	mixValue = 0.0f;
+    if(glfwGetKey(window,GLFW_KEY_A) == GLFW_PRESS)
+      // when you do cross product of front vector and up vector of camera, you get right and left vectors. That result vector will be used as
+      // a position of the camera
+      camPos -= glm::normalize(glm::cross(camFront,camUp)) * camSpeed;
 
-      if(farPlaneDistance <= -80.0f)
-	farPlaneDistance = -70.0f;
-      
-    }
+    if(glfwGetKey(window,GLFW_KEY_D) == GLFW_PRESS)
+      // when you do cross product of front vector and up vector of camera, you get right and left vectors. That result vector will be used as
+      // a position of the camera
+      camPos += glm::normalize(glm::cross(camFront,camUp)) * camSpeed;      
 
+    if(glfwGetKey(window,GLFW_KEY_SPACE) == GLFW_PRESS)
+      camFront = -camFront;      
 }
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
