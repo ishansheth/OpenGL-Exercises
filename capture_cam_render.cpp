@@ -144,7 +144,7 @@ int main()
       return -1;
     }
 
-    Shader ourShader("coordinateSystem.vs", "camCapture.fs");
+    Shader ourShader("camCapture.vs", "camCapture.fs");
 
     //    std::thread captureThread(createTexture);
     
@@ -158,52 +158,52 @@ int main()
 
     float cubeVertices[] = {
       // back side
-      -0.5f, -0.5f, -0.5f, 1.0f,0.0f,0.0f, 0.0f, 0.0f,
-      0.5f, -0.5f, -0.5f,  1.0f,0.0f,0.0f, 1.0f, 0.0f,
-      0.5f,  0.5f, -0.5f,  1.0f,0.0f,0.0f, 1.0f, 1.0f,
-      0.5f,  0.5f, -0.5f,  1.0f,0.0f,0.0f, 1.0f, 1.0f,
-      -0.5f,  0.5f, -0.5f, 1.0f,0.0f,0.0f, 0.0f, 1.0f,
-      -0.5f, -0.5f, -0.5f, 1.0f,0.0f,0.0f, 0.0f, 0.0f,
+      -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+      0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+      0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+      0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+      -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+      -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
 
       //front side
-      -0.5f, -0.5f,  0.5f, 0.0f,1.0f,0.0f, 0.0f, 0.0f,
-      0.5f, -0.5f,  0.5f,  0.0f,1.0f,0.0f, 1.0f, 0.0f,
-      0.5f,  0.5f,  0.5f,  0.0f,1.0f,0.0f, 1.0f, 1.0f,
-      0.5f,  0.5f,  0.5f,  0.0f,1.0f,0.0f, 1.0f, 1.0f,
-      -0.5f,  0.5f,  0.5f, 0.0f,1.0f,0.0f, 0.0f, 1.0f,
-      -0.5f, -0.5f,  0.5f, 0.0f,1.0f,0.0f, 0.0f, 0.0f,
+      -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+      0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+      0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+      0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+      -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
+      -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
 
       //left side
-      -0.5f,  0.5f,  0.5f, 0.0f,0.0f,1.0f, 1.0f, 0.0f,
-      -0.5f,  0.5f, -0.5f, 0.0f,0.0f,1.0f, 1.0f, 1.0f,
-      -0.5f, -0.5f, -0.5f, 0.0f,0.0f,1.0f,  0.0f, 1.0f,
-      -0.5f, -0.5f, -0.5f, 0.0f,0.0f,1.0f,  0.0f, 1.0f,
-      -0.5f, -0.5f,  0.5f, 0.0f,0.0f,1.0f,  0.0f, 0.0f,
-      -0.5f,  0.5f,  0.5f, 0.0f,0.0f,1.0f,  1.0f, 0.0f,
+      -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+      -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+      -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+      -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+      -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+      -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
 
       //right side
-      0.5f,  0.5f,  0.5f, 1.0f,1.0f,0.0f,  1.0f, 0.0f,
-      0.5f,  0.5f, -0.5f, 1.0f,1.0f,0.0f,  1.0f, 1.0f,
-      0.5f, -0.5f, -0.5f, 1.0f,1.0f,0.0f,  0.0f, 1.0f,
-      0.5f, -0.5f, -0.5f, 1.0f,1.0f,0.0f,  0.0f, 1.0f,
-      0.5f, -0.5f,  0.5f, 1.0f,1.0f,0.0f,  0.0f, 0.0f,
-      0.5f,  0.5f,  0.5f, 1.0f,1.0f,0.0f,  1.0f, 0.0f,
+      0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+      0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+      0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+      0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+      0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+      0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
 
       //bottom side
-      -0.5f, -0.5f, -0.5f, 0.0f,1.0f,1.0f,  0.0f, 1.0f,
-      0.5f, -0.5f, -0.5f,  0.0f,1.0f,1.0f, 1.0f, 1.0f,
-      0.5f, -0.5f,  0.5f,  0.0f,1.0f,1.0f, 1.0f, 0.0f,
-      0.5f, -0.5f,  0.5f,  0.0f,1.0f,1.0f, 1.0f, 0.0f,
-      -0.5f, -0.5f,  0.5f, 0.0f,1.0f,1.0f, 0.0f, 0.0f,
-      -0.5f, -0.5f, -0.5f, 0.0f,1.0f,1.0f, 0.0f, 1.0f,
+      -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+      0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
+      0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+      0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+      -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+      -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
 
       //top side
-      -0.5f,  0.5f, -0.5f, 1.0f,0.0f,1.0f, 0.0f, 1.0f,
-      0.5f,  0.5f, -0.5f,  1.0f,0.0f,1.0f, 1.0f, 1.0f,
-      0.5f,  0.5f,  0.5f,  1.0f,0.0f,1.0f, 1.0f, 0.0f,
-      0.5f,  0.5f,  0.5f,  1.0f,0.0f,1.0f, 1.0f, 0.0f,
-      -0.5f,  0.5f,  0.5f, 1.0f,0.0f,1.0f, 0.0f, 0.0f,
-      -0.5f,  0.5f, -0.5f, 1.0f,0.0f,1.0f,  0.0f, 1.0f
+      -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+      0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+      0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+      0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+      -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
+      -0.5f, 0.5f, -0.5f, 0.0f, 1.0f
     };
 
     
@@ -225,15 +225,13 @@ int main()
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
     // position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
 
-    // texture coord attribute
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
-    glEnableVertexAttribArray(2);
+    
 
 
     while (!glfwWindowShouldClose(window))
