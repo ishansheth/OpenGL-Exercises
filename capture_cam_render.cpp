@@ -64,8 +64,8 @@ void* grab_frame(){
 
 void createTexture(){
 
-  //  while(1){
-  //    if(startCapture.load()){
+  while(1){
+    if(startCapture.load()){
       std::cout<<"****************Capturing, creating texture*******************"<<std::endl;
       grab_frame();
 
@@ -115,7 +115,8 @@ void createTexture(){
       
       startCapture = false;
       doneCapture = true;
-      //  }  
+    }
+  }
 }
 
 int main()
@@ -146,7 +147,7 @@ int main()
 
     Shader ourShader("camCapture.vs", "camCapture.fs");
 
-    //    std::thread captureThread(createTexture);
+    std::thread captureThread(createTexture);
     
     float vertices[] = {
         // positions          // texture coords
@@ -288,7 +289,7 @@ int main()
     glDeleteBuffers(1, &EBO);
 
     glfwTerminate();
-    //    captureThread.join();
+    captureThread.join();
     return 0;
 }
 
@@ -321,24 +322,16 @@ void processInput(GLFWwindow *window)
     }
     
     if(glfwGetKey(window,GLFW_KEY_SPACE) == GLFW_PRESS){
-      createTexture();
-      startCapture = true;
-      
-      //      glActiveTexture(GL_TEXTURE0);
-      //      glBindTexture(GL_TEXTURE_2D, texture1);
-      
-      glActiveTexture(GL_TEXTURE1);
-      glBindTexture(GL_TEXTURE_2D, texture2);
+      //      createTexture();
+      startCapture = true;      
       
     }
-    /**
     if(doneCapture.load()){
       glActiveTexture(GL_TEXTURE1);
       glBindTexture(GL_TEXTURE_2D, texture2);
       std::cout<<"texture activated!!"<<std::endl;
       doneCapture = false;
     }
-    **/
 }
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
