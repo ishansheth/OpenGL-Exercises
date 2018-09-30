@@ -271,9 +271,13 @@ void processInput(GLFWwindow *window)
       cameraPos -= cameraSpeed * cameraFront;
 
     if(glfwGetKey(window,GLFW_KEY_A) == GLFW_PRESS)
+      // when you do cross product of front vector and up vector of camera, you get right and left vectors. That result vector will be used as
+      // a position of the camera
       cameraPos -= glm::normalize(glm::cross(cameraFront,cameraUp)) * cameraSpeed;
 
     if(glfwGetKey(window,GLFW_KEY_D) == GLFW_PRESS)
+      // when you do cross product of front vector and up vector of camera, you get right and left vectors. That result vector will be used as
+      // a position of the camera
       cameraPos += glm::normalize(glm::cross(cameraFront,cameraUp)) * cameraSpeed;      
 }
 

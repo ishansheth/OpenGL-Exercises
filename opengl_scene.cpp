@@ -1,7 +1,3 @@
-/**
-TODO: come back to this later
-In order to create scene here, more reading is required.
- **/
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 

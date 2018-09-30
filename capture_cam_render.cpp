@@ -16,6 +16,10 @@ g++ -o perspectiveRendering <capture_cam_render.cpp> stb_image.h shader.hpp  `pk
 #include "opencv2/opencv.hpp"
 #include <vector>
 #include <string>
+#include <future>
+#include <thread>
+#include <chrono>
+#include <atomic>
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow *window);
@@ -28,6 +32,12 @@ const unsigned int SCR_HEIGHT = 600;
 unsigned int texture1, texture2;
 float mixValue = 0.2f;
 float farPlaneDistance = -70.0f;
+
+// atomic variable to synchronise two threads/signal between threads
+std::atomic<bool> startCapture(false);
+std::atomic<bool> doneCapture(false);
+
+//std::thread captureThread;
 
 
 void* grab_frame(){
@@ -54,52 +64,58 @@ void* grab_frame(){
 
 void createTexture(){
 
-    grab_frame();
+  //  while(1){
+  //    if(startCapture.load()){
+      std::cout<<"****************Capturing, creating texture*******************"<<std::endl;
+      grab_frame();
 
-    glGenTextures(1, &texture1);
-    glBindTexture(GL_TEXTURE_2D, texture1);
-    // set the texture wrapping parameters
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    // set texture filtering parameters
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-    // load image, create texture and generate mipmaps
-    int width, height, nrChannels;
-    stbi_set_flip_vertically_on_load(true); 
-
-    // uploading the image data of the texture 1
-    unsigned char* data1 = stbi_load("brickwall.jpg",&width,&height,&nrChannels,0);
-    
-    if(data1){
-      glTexImage2D(GL_TEXTURE_2D,0,GL_RGB,width,height,0,GL_RGB,GL_UNSIGNED_BYTE,data1);
-      glGenerateMipmap(GL_TEXTURE_2D);
-    }else{
-      std::cout<<"Could not load texture1 image"<<std::endl;
-    }
-    stbi_image_free(data1);//free the buffer
-
-
-    glGenTextures(1, &texture2);
-    glBindTexture(GL_TEXTURE_2D, texture2);
-    // set the texture wrapping parameters
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    // set texture filtering parameters
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-    unsigned char* data2 = stbi_load(imageFileName.c_str(),&width,&height,&nrChannels,0);
-    
-    if(data2){
-      glTexImage2D(GL_TEXTURE_2D,0,GL_RGB,width,height,0,GL_RGB,GL_UNSIGNED_BYTE,data2);
-      glGenerateMipmap(GL_TEXTURE_2D);
-    }else{
-      std::cout<<"Could not load texture2 image"<<std::endl;
-    }
-    stbi_image_free(data2);// free the buffer
-  
+      glGenTextures(1, &texture1);
+      glBindTexture(GL_TEXTURE_2D, texture1);
+      // set the texture wrapping parameters
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+      // set texture filtering parameters
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+      
+      // load image, create texture and generate mipmaps
+      int width, height, nrChannels;
+      stbi_set_flip_vertically_on_load(true); 
+      
+      // uploading the image data of the texture 1
+      unsigned char* data1 = stbi_load("brickwall.jpg",&width,&height,&nrChannels,0);
+      
+      if(data1){
+	glTexImage2D(GL_TEXTURE_2D,0,GL_RGB,width,height,0,GL_RGB,GL_UNSIGNED_BYTE,data1);
+	glGenerateMipmap(GL_TEXTURE_2D);
+      }else{
+	std::cout<<"Could not load texture1 image"<<std::endl;
+      }
+      stbi_image_free(data1);//free the buffer
+      
+      
+      glGenTextures(1, &texture2);
+      glBindTexture(GL_TEXTURE_2D, texture2);
+      // set the texture wrapping parameters
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+      // set texture filtering parameters
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+      
+      unsigned char* data2 = stbi_load(imageFileName.c_str(),&width,&height,&nrChannels,0);
+      
+      if(data2){
+	glTexImage2D(GL_TEXTURE_2D,0,GL_RGB,width,height,0,GL_RGB,GL_UNSIGNED_BYTE,data2);
+	glGenerateMipmap(GL_TEXTURE_2D);
+      }else{
+	std::cout<<"Could not load texture2 image"<<std::endl;
+      }
+      stbi_image_free(data2);// free the buffer
+      
+      startCapture = false;
+      doneCapture = true;
+      //  }  
 }
 
 int main()
@@ -128,8 +144,9 @@ int main()
       return -1;
     }
 
-    Shader ourShader("coordinateSystem.vs", "coordinateSystem.fs");
+    Shader ourShader("coordinateSystem.vs", "camCapture.fs");
 
+    //    std::thread captureThread(createTexture);
     
     float vertices[] = {
         // positions          // texture coords
@@ -273,6 +290,7 @@ int main()
     glDeleteBuffers(1, &EBO);
 
     glfwTerminate();
+    //    captureThread.join();
     return 0;
 }
 
@@ -303,16 +321,26 @@ void processInput(GLFWwindow *window)
 	farPlaneDistance = -70.0f;
       
     }
-
+    
     if(glfwGetKey(window,GLFW_KEY_SPACE) == GLFW_PRESS){
       createTexture();
+      startCapture = true;
+      
       //      glActiveTexture(GL_TEXTURE0);
       //      glBindTexture(GL_TEXTURE_2D, texture1);
-
+      
       glActiveTexture(GL_TEXTURE1);
       glBindTexture(GL_TEXTURE_2D, texture2);
-
-    }    
+      
+    }
+    /**
+    if(doneCapture.load()){
+      glActiveTexture(GL_TEXTURE1);
+      glBindTexture(GL_TEXTURE_2D, texture2);
+      std::cout<<"texture activated!!"<<std::endl;
+      doneCapture = false;
+    }
+    **/
 }
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
