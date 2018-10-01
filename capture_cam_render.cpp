@@ -73,6 +73,19 @@ void createTexture(){
   }
 }
 
+void setVerticesProp(unsigned int* VAO,unsigned int* VBO, float* vertexArray,unsigned int arraysize){  
+  glGenVertexArrays(1,VAO);
+  glGenBuffers(1,VBO);    
+  glBindVertexArray(*VAO);    
+  glBindBuffer(GL_ARRAY_BUFFER,*VBO);    
+  glBufferData(GL_ARRAY_BUFFER,arraysize,vertexArray,GL_STATIC_DRAW);		
+  glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,5*sizeof(float),(void*)0);
+  glEnableVertexAttribArray(0);    
+  glVertexAttribPointer(1,2,GL_FLOAT,GL_FALSE,5*sizeof(float),(void*)(3*sizeof(float)));
+  glEnableVertexAttribArray(1);
+}
+
+
 int main()
 {
     glfwInit();
@@ -103,15 +116,7 @@ int main()
 
     std::thread captureThread(createTexture);
     
-    float vertices[] = {
-        // positions          // texture coords
-         0.0f,  0.5f, 0.5f,   1.0f, 1.0f, // top right
-         0.0f, 0.5f, -0.5f,   1.0f, 0.0f, // bottom right
-         0.0f, -0.5f, -0.5f,   0.0f, 0.0f, // bottom left
-         0.0f,  -0.5f, 0.5f,   0.0f, 1.0f  // top left 
-    };
-
-    float cubeVertices[] = {
+    float cubeVerticesback[] = {
       // back side
       -10.5f, -10.5f, -10.5f,  0.0f, 0.0f,
       10.5f, -10.5f, -10.5f,  1.0f, 0.0f,
@@ -119,7 +124,8 @@ int main()
       10.5f,  10.5f, -10.5f,  1.0f, 1.0f,
       -10.5f,  10.5f, -10.5f,  0.0f, 1.0f,
       -10.5f, -10.5f, -10.5f,  0.0f, 0.0f,
-
+    };
+    float cubeVerticesfront[]={
       //front side
       -10.5f, -10.5f,  10.5f,  0.0f, 0.0f,
       10.5f, -10.5f,  10.5f,  1.0f, 0.0f,
@@ -127,7 +133,8 @@ int main()
       10.5f,  10.5f,  10.5f,  1.0f, 1.0f,
       -10.5f,  10.5f,  10.5f,  0.0f, 1.0f,
       -10.5f, -10.5f,  10.5f,  0.0f, 0.0f,
-
+    };
+    float cubeVerticesleft[]={
       //left side
       -10.5f,  10.5f,  10.5f,  1.0f, 0.0f,
       -10.5f,  10.5f, -10.5f,  1.0f, 1.0f,
@@ -135,7 +142,9 @@ int main()
       -10.5f, -10.5f, -10.5f,  0.0f, 1.0f,
       -10.5f, -10.5f,  10.5f,  0.0f, 0.0f,
       -10.5f,  10.5f,  10.5f,  1.0f, 0.0f,
+    };
 
+    float cubeVerticesright[]={
       //right side
       10.5f,  10.5f,  10.5f,  1.0f, 0.0f,
       10.5f,  10.5f, -10.5f,  1.0f, 1.0f,
@@ -143,7 +152,9 @@ int main()
       10.5f, -10.5f, -10.5f,  0.0f, 1.0f,
       10.5f, -10.5f,  10.5f,  0.0f, 0.0f,
       10.5f,  10.5f,  10.5f,  1.0f, 0.0f,
+    };
 
+    float cubeVerticesbottom[]={
       //bottom side
       -10.5f, -10.5f, -10.5f,  0.0f, 1.0f,
       10.5f, -10.5f, -10.5f,  1.0f, 1.0f,
@@ -151,40 +162,27 @@ int main()
       10.5f, -10.5f,  10.5f,  1.0f, 0.0f,
       -10.5f, -10.5f,  10.5f,  0.0f, 0.0f,
       -10.5f, -10.5f, -10.5f,  0.0f, 1.0f,
+    };
 
+    float cubeVerticestop[]={
       //top side
       -10.5f,  10.5f, -10.5f,  0.0f, 1.0f,
       10.5f,  10.5f, -10.5f,  1.0f, 1.0f,
       10.5f,  10.5f,  10.5f,  1.0f, 0.0f,
       10.5f,  10.5f,  10.5f,  1.0f, 0.0f,
       -10.5f,  10.5f,  10.5f,  0.0f, 0.0f,
-      -10.5f, 10.5f, -10.5f, 0.0f, 1.0f
+      -10.5f,  10.5f, -10.5f,  0.0f, 1.0f
     };
 
     
-    unsigned int indices[] = {
-        0, 1, 3, // first triangle
-        1, 2, 3  // second triangle
-    };
-    unsigned int VBO, VAO, EBO;
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-    glGenBuffers(1, &EBO);
-
-    glBindVertexArray(VAO);
-
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(cubeVertices), cubeVertices, GL_STATIC_DRAW);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-
-    // position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
-
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
-    glEnableVertexAttribArray(1);
+    unsigned int VBO1,VAO1,VBO2,VAO2,VBO3,VAO3,VBO4,VAO4,VBO5,VAO5,VBO6,VAO6;
+    
+    setVerticesProp(&VAO1,&VBO1,cubeVerticesfront,sizeof(cubeVerticesfront));
+    setVerticesProp(&VAO2,&VBO2,cubeVerticesback,sizeof(cubeVerticesback));
+    setVerticesProp(&VAO3,&VBO3,cubeVerticesright,sizeof(cubeVerticesright));
+    setVerticesProp(&VAO4,&VBO4,cubeVerticesleft,sizeof(cubeVerticesleft));
+    setVerticesProp(&VAO5,&VBO5,cubeVerticestop,sizeof(cubeVerticestop));
+    setVerticesProp(&VAO6,&VBO6,cubeVerticesbottom,sizeof(cubeVerticesbottom));
 
     
     glGenTextures(1, &texture1);
@@ -254,7 +252,7 @@ int main()
 	//Its FUN!!
 	//        view  = glm::translate(view, glm::vec3(0.0f, 0.0f, farPlaneDistance));
 	
-        view  = glm::translate(view, glm::vec3(0.0f, 0.0f,-50.0f));
+        view  = glm::translate(view, glm::vec3(0.0f, 0.0f,-80.0f));
         projection = glm::perspective(glm::radians(45.0f), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);  	
 	model = glm::rotate(model,(float)glfwGetTime()*glm::radians(20.0f),glm::vec3(1.0f,0.3f,0.5f));
 
@@ -268,16 +266,36 @@ int main()
         glUniformMatrix4fv(viewLoc, 1, GL_FALSE, &view[0][0]);
         glUniformMatrix4fv(projLoc, 1, GL_FALSE, &projection[0][0]);
 
-        glBindVertexArray(VAO);
-	glDrawArrays(GL_TRIANGLES,0,36);
+	// four side has texture1 and texture1 is bound to brickwall image
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, texture1);      
+	
+	glBindVertexArray(VAO1);
+	glDrawArrays(GL_TRIANGLES,0,6);
+	
+	glBindVertexArray(VAO2);
+	glDrawArrays(GL_TRIANGLES,0,6);
+
+	glBindVertexArray(VAO3);
+	glDrawArrays(GL_TRIANGLES,0,6);
+	
+	glBindVertexArray(VAO4);
+	glDrawArrays(GL_TRIANGLES,0,6);
+
+	// two side has texture2 and texture2 is bound to camera captured image
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, texture2);
+		
+	glBindVertexArray(VAO5);
+	glDrawArrays(GL_TRIANGLES,0,6);
+      
+	glBindVertexArray(VAO6);
+	glDrawArrays(GL_TRIANGLES,0,6);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
 
-    glDeleteVertexArrays(1, &VAO);
-    glDeleteBuffers(1, &VBO);
-    glDeleteBuffers(1, &EBO);
 
     glfwTerminate();
     captureThread.join();
@@ -313,7 +331,6 @@ void processInput(GLFWwindow *window)
     }
     
     if(glfwGetKey(window,GLFW_KEY_SPACE) == GLFW_PRESS){
-      //      createTexture();
       startCapture = true;            
     }
       
