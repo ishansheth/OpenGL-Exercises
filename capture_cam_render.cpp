@@ -37,9 +37,6 @@ float farPlaneDistance = -70.0f;
 std::atomic<bool> startCapture(false);
 std::atomic<bool> doneCapture(false);
 
-//std::thread captureThread;
-
-
 void* grab_frame(){
 
   using namespace cv;
@@ -68,53 +65,10 @@ void createTexture(){
     if(startCapture.load()){
       std::cout<<"****************Capturing, creating texture*******************"<<std::endl;
       grab_frame();
-
-      glGenTextures(1, &texture1);
-      glBindTexture(GL_TEXTURE_2D, texture1);
-      // set the texture wrapping parameters
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-      // set texture filtering parameters
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-      
-      // load image, create texture and generate mipmaps
-      int width, height, nrChannels;
-      stbi_set_flip_vertically_on_load(true); 
-      
-      // uploading the image data of the texture 1
-      unsigned char* data1 = stbi_load("brickwall.jpg",&width,&height,&nrChannels,0);
-      
-      if(data1){
-	glTexImage2D(GL_TEXTURE_2D,0,GL_RGB,width,height,0,GL_RGB,GL_UNSIGNED_BYTE,data1);
-	glGenerateMipmap(GL_TEXTURE_2D);
-      }else{
-	std::cout<<"Could not load texture1 image"<<std::endl;
-      }
-      stbi_image_free(data1);//free the buffer
-      
-      
-      glGenTextures(1, &texture2);
-      glBindTexture(GL_TEXTURE_2D, texture2);
-      // set the texture wrapping parameters
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-      // set texture filtering parameters
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-      
-      unsigned char* data2 = stbi_load(imageFileName.c_str(),&width,&height,&nrChannels,0);
-      
-      if(data2){
-	glTexImage2D(GL_TEXTURE_2D,0,GL_RGB,width,height,0,GL_RGB,GL_UNSIGNED_BYTE,data2);
-	glGenerateMipmap(GL_TEXTURE_2D);
-      }else{
-	std::cout<<"Could not load texture2 image"<<std::endl;
-      }
-      stbi_image_free(data2);// free the buffer
       
       startCapture = false;
       doneCapture = true;
+      std::cout<<"operation complete"<<std::endl;
     }
   }
 }
@@ -159,52 +113,52 @@ int main()
 
     float cubeVertices[] = {
       // back side
-      -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-      0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
-      0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-      0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-      -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-      -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+      -10.5f, -10.5f, -10.5f,  0.0f, 0.0f,
+      10.5f, -10.5f, -10.5f,  1.0f, 0.0f,
+      10.5f,  10.5f, -10.5f,  1.0f, 1.0f,
+      10.5f,  10.5f, -10.5f,  1.0f, 1.0f,
+      -10.5f,  10.5f, -10.5f,  0.0f, 1.0f,
+      -10.5f, -10.5f, -10.5f,  0.0f, 0.0f,
 
       //front side
-      -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-      0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-      0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-      0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-      -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
-      -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+      -10.5f, -10.5f,  10.5f,  0.0f, 0.0f,
+      10.5f, -10.5f,  10.5f,  1.0f, 0.0f,
+      10.5f,  10.5f,  10.5f,  1.0f, 1.0f,
+      10.5f,  10.5f,  10.5f,  1.0f, 1.0f,
+      -10.5f,  10.5f,  10.5f,  0.0f, 1.0f,
+      -10.5f, -10.5f,  10.5f,  0.0f, 0.0f,
 
       //left side
-      -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-      -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-      -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-      -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-      -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-      -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+      -10.5f,  10.5f,  10.5f,  1.0f, 0.0f,
+      -10.5f,  10.5f, -10.5f,  1.0f, 1.0f,
+      -10.5f, -10.5f, -10.5f,  0.0f, 1.0f,
+      -10.5f, -10.5f, -10.5f,  0.0f, 1.0f,
+      -10.5f, -10.5f,  10.5f,  0.0f, 0.0f,
+      -10.5f,  10.5f,  10.5f,  1.0f, 0.0f,
 
       //right side
-      0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-      0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-      0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-      0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-      0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-      0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+      10.5f,  10.5f,  10.5f,  1.0f, 0.0f,
+      10.5f,  10.5f, -10.5f,  1.0f, 1.0f,
+      10.5f, -10.5f, -10.5f,  0.0f, 1.0f,
+      10.5f, -10.5f, -10.5f,  0.0f, 1.0f,
+      10.5f, -10.5f,  10.5f,  0.0f, 0.0f,
+      10.5f,  10.5f,  10.5f,  1.0f, 0.0f,
 
       //bottom side
-      -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-      0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
-      0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-      0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-      -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-      -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+      -10.5f, -10.5f, -10.5f,  0.0f, 1.0f,
+      10.5f, -10.5f, -10.5f,  1.0f, 1.0f,
+      10.5f, -10.5f,  10.5f,  1.0f, 0.0f,
+      10.5f, -10.5f,  10.5f,  1.0f, 0.0f,
+      -10.5f, -10.5f,  10.5f,  0.0f, 0.0f,
+      -10.5f, -10.5f, -10.5f,  0.0f, 1.0f,
 
       //top side
-      -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-      0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-      0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-      0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-      -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
-      -0.5f, 0.5f, -0.5f, 0.0f, 1.0f
+      -10.5f,  10.5f, -10.5f,  0.0f, 1.0f,
+      10.5f,  10.5f, -10.5f,  1.0f, 1.0f,
+      10.5f,  10.5f,  10.5f,  1.0f, 0.0f,
+      10.5f,  10.5f,  10.5f,  1.0f, 0.0f,
+      -10.5f,  10.5f,  10.5f,  0.0f, 0.0f,
+      -10.5f, 10.5f, -10.5f, 0.0f, 1.0f
     };
 
     
@@ -233,22 +187,62 @@ int main()
     glEnableVertexAttribArray(1);
 
     
-
-
+    glGenTextures(1, &texture1);
+    glBindTexture(GL_TEXTURE_2D, texture1);
+    // set the texture wrapping parameters
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    // set texture filtering parameters
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    
+    // load image, create texture and generate mipmaps
+    int width, height, nrChannels;
+    stbi_set_flip_vertically_on_load(true); 
+    
+    // uploading the image data of the texture 1
+    unsigned char* data1 = stbi_load("brickwall.jpg",&width,&height,&nrChannels,0);
+    
+    if(data1){
+      glTexImage2D(GL_TEXTURE_2D,0,GL_RGB,width,height,0,GL_RGB,GL_UNSIGNED_BYTE,data1);
+      glGenerateMipmap(GL_TEXTURE_2D);
+    }else{
+      std::cout<<"Could not load texture1 image"<<std::endl;
+    }
+    stbi_image_free(data1);//free the buffer
+    
+    
+    glGenTextures(1, &texture2);
+    glBindTexture(GL_TEXTURE_2D, texture2);
+    // set the texture wrapping parameters
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    // set texture filtering parameters
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    
+    unsigned char* data2 = stbi_load(imageFileName.c_str(),&width,&height,&nrChannels,0);
+    
+    if(data2){
+      glTexImage2D(GL_TEXTURE_2D,0,GL_RGB,width,height,0,GL_RGB,GL_UNSIGNED_BYTE,data2);
+      glGenerateMipmap(GL_TEXTURE_2D);
+    }else{
+      std::cout<<"Could not load texture2 image"<<std::endl;
+    }
+    stbi_image_free(data2);// free the buffer
+    
+    
     while (!glfwWindowShouldClose(window))
-    {
+      {
         processInput(window);
-
+	
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        // bind textures on corresponding texture units
-	//        glActiveTexture(GL_TEXTURE1);
-	//        glBindTexture(GL_TEXTURE_2D, texture2);
-  
+	
+	
         // activate shader
         ourShader.use();
-      
+	
         // create transformations
         glm::mat4 view(1.0f);
         glm::mat4 projection(1.0f);
@@ -260,7 +254,7 @@ int main()
 	//Its FUN!!
 	//        view  = glm::translate(view, glm::vec3(0.0f, 0.0f, farPlaneDistance));
 	
-        view  = glm::translate(view, glm::vec3(0.0f, 0.0f,-10.0f));
+        view  = glm::translate(view, glm::vec3(0.0f, 0.0f,-50.0f));
         projection = glm::perspective(glm::radians(45.0f), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);  	
 	model = glm::rotate(model,(float)glfwGetTime()*glm::radians(20.0f),glm::vec3(1.0f,0.3f,0.5f));
 
@@ -269,7 +263,6 @@ int main()
 	
         unsigned int viewLoc  = glGetUniformLocation(ourShader.ID, "view");
 	unsigned int projLoc  = glGetUniformLocation(ourShader.ID, "projection");
-
 	
         // pass them to the shaders (3 different ways)
         glUniformMatrix4fv(viewLoc, 1, GL_FALSE, &view[0][0]);
@@ -277,8 +270,6 @@ int main()
 
         glBindVertexArray(VAO);
 	glDrawArrays(GL_TRIANGLES,0,36);
-
-	//	        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
@@ -323,12 +314,19 @@ void processInput(GLFWwindow *window)
     
     if(glfwGetKey(window,GLFW_KEY_SPACE) == GLFW_PRESS){
       //      createTexture();
-      startCapture = true;      
-      
+      startCapture = true;            
     }
+      
     if(doneCapture.load()){
+      int width, height, nrChannels;
+
       glActiveTexture(GL_TEXTURE1);
       glBindTexture(GL_TEXTURE_2D, texture2);
+      unsigned char* data2 = stbi_load(imageFileName.c_str(),&width,&height,&nrChannels,0);
+
+      glTexImage2D(GL_TEXTURE_2D,0,GL_RGB,width,height,0,GL_RGB,GL_UNSIGNED_BYTE,data2);
+      glGenerateMipmap(GL_TEXTURE_2D);
+
       std::cout<<"texture activated!!"<<std::endl;
       doneCapture = false;
     }
