@@ -20,6 +20,7 @@ g++ -o perspectiveRendering <capture_cam_render.cpp> stb_image.h shader.hpp  `pk
 #include <thread>
 #include <chrono>
 #include <atomic>
+#include "GY80SensorDataSource.hxx"
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow *window);
@@ -55,7 +56,8 @@ void* grab_frame(){
   }catch(std::runtime_error& ex){
     std::cout<<"Could not write image data to png file"<<std::endl;
     return 0;
-  }  
+  }
+  // TODO: convert the captured image into different formats e.g. grayscale, HSI, etc and then upload as a texture
 }
 
 
@@ -93,6 +95,14 @@ int main()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
+    SensorDataSource m_gy80SensorData;
+    
+    if(m_gy80SensorData.connectToServer()<0){
+        std::cout<<"Sensor data Server could not be connected"<<std::endl;
+	return -1;
+    }
+    
+    
     GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", NULL, NULL);
     if (window == NULL)
     {
