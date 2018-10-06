@@ -98,8 +98,10 @@ int main()
     SensorDataSource m_gy80SensorData;
     
     if(m_gy80SensorData.connectToServer()<0){
-        std::cout<<"Sensor data Server could not be connected"<<std::endl;
-	return -1;
+      std::cout<<"Sensor data Server could not be connected"<<std::endl;
+      return -1;
+    }else{
+      m_gy80SensorData.startGyroProtocol();
     }
     
     
@@ -239,18 +241,17 @@ int main()
     }
     stbi_image_free(data2);// free the buffer
     
-    
+
+
     while (!glfwWindowShouldClose(window))
       {
-        processInput(window);
-	
+        processInput(window);	
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	
-	
+		
         // activate shader
         ourShader.use();
-	
+
         // create transformations
         glm::mat4 view(1.0f);
         glm::mat4 projection(1.0f);
@@ -261,10 +262,13 @@ int main()
 	// if you do not translate the cube to -3.0 in z axis and rotate it, you will see yourself inside the cube.
 	//Its FUN!!
 	//        view  = glm::translate(view, glm::vec3(0.0f, 0.0f, farPlaneDistance));
+	m_gy80SensorData.readBytes();
+	float* data = m_gy80SensorData.getSensorData();
+	std::cout<<"----->"<<data[0]<<data[1]<<data[2]<<std::endl;
 	
+	model = glm::rotate(model,(float)glfwGetTime()*glm::radians(5.0f),glm::vec3(data[1],data[2],data[0]));
         view  = glm::translate(view, glm::vec3(0.0f, 0.0f,-80.0f));
         projection = glm::perspective(glm::radians(45.0f), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);  	
-	model = glm::rotate(model,(float)glfwGetTime()*glm::radians(20.0f),glm::vec3(1.0f,0.3f,0.5f));
 
 	ourShader.setMat4("model",model);	
 	ourShader.setFloat("mixValue",mixValue);
@@ -304,6 +308,8 @@ int main()
 
         glfwSwapBuffers(window);
         glfwPollEvents();
+
+    
     }
 
 
