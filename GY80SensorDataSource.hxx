@@ -26,8 +26,12 @@ class SensorDataSource{
   float* m_sensorData;
 
   bool m_connectionStatus;
-
+  
   static constexpr int CHUNKSIZE = 3;
+  std::queue<float> dataBufferQueue;
+
+  std::mutex m_bufferSyncMutex;
+  std::condition_variable m_bufferSyncVar;
 
   void restartGyroModule(){
     // TODO: start the whole gyro stack here when server breaks the connection
@@ -37,8 +41,7 @@ class SensorDataSource{
       connres =  connectToServer();
       std::cout<<"Trying to connect................"<<std::endl;
       std::this_thread::sleep_for(std::chrono::seconds(2));
-    }
-    
+    }    
     handshakeRes = startGyroProtocol();
     if(handshakeRes > 0)
       std::cout<<"Connection established again!!"<<std::endl;
@@ -47,16 +50,53 @@ class SensorDataSource{
   }
 
 
+  int readBytesQueue(unsigned int chunkSize){
+    int readbytes = 0;
+    int receivedBytesChunk = 0;
+    
+    if(!m_connectionStatus){
+      std::cout<<"Connection is not yet established"<<std::endl;
+      return -1;
+    }
+
+    while(readbytes != chunkSize*sizeof(float)){
+      receivedBytesChunk = read(m_clientSock,m_sensorData+readbytes,chunkSize*sizeof(float)-readbytes);
+      std::cout<<"Received-----"<<receivedBytesChunk<<std::endl;
+      if(receivedBytesChunk > 0)
+	readbytes += receivedBytesChunk;
+      else if(receivedBytesChunk == 0){
+	std::cout<<"Server closed the connection"<<std::endl;
+	return -1;
+      }      
+    }
+      
+    for(int i = 0;i<chunkSize;i++){
+      dataBufferQueue.push(m_sensorData[i]);      
+    }    
+    return 1;
+  }
+
+
   void clientWorkerThread(){
     while(1){
-      std::cout<<"Thread running....."<<std::endl;
-      readBytes();
+      std::unique_lock<std::mutex> lk(m_bufferSyncMutex);
+      m_bufferSyncVar.wait(lk,[this](){return dataBufferQueue.size() < 5;});
+      std::cout<<"Getting data from server....";
+      if(readBytesQueue(15)>0){
+      }else{
+	std::cout<<"Bytes can not be read from server,terminating thread"<<std::endl;
+	break;
+      }
+      lk.unlock();
+      m_bufferSyncVar.notify_all();
     }
+
   }
 
 public:
   // ctor
-  SensorDataSource():m_sensorData(new float[CHUNKSIZE]),m_connectionStatus(false){}
+  SensorDataSource():m_sensorData(new float[CHUNKSIZE])
+		    ,m_connectionStatus(false){}
 
   //dtor, joining thread, deleting the receiver buffer
   ~SensorDataSource(){
@@ -70,7 +110,19 @@ public:
     m_clientThread = std::thread(&SensorDataSource::clientWorkerThread,this);
   }
 
-    // The size of the buffer 'CHUNKSIZE' should be able to be set and when its filled, this function will return the buffer
+  float getSingleAxisData(){
+    std::unique_lock<std::mutex> lk(m_bufferSyncMutex);      
+    m_bufferSyncVar.wait(lk,[this]{return dataBufferQueue.size() > 0;});    
+    float sensorVal = dataBufferQueue.front();
+    dataBufferQueue.pop();
+    lk.unlock();
+    m_bufferSyncVar.notify_all();
+    return sensorVal;
+  }
+
+
+  
+  // The size of the buffer 'CHUNKSIZE' should be able to be set and when its filled, this function will return the buffer
   int readBytes(){
     
     int readbytes = 0;
