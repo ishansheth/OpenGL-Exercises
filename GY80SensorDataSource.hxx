@@ -27,7 +27,7 @@ class SensorDataSource{
 
   bool m_connectionStatus;
   
-  static constexpr int CHUNKSIZE = 3;
+  static constexpr int CHUNKSIZE = 30;
   std::queue<float> dataBufferQueue;
 
   std::mutex m_bufferSyncMutex;
@@ -50,7 +50,7 @@ class SensorDataSource{
   }
 
 
-  int readBytesQueue(unsigned int chunkSize){
+  int readBytesQueue(){
     int readbytes = 0;
     int receivedBytesChunk = 0;
     
@@ -58,10 +58,15 @@ class SensorDataSource{
       std::cout<<"Connection is not yet established"<<std::endl;
       return -1;
     }
+    
+    std::cout<<"sending ok......"<<std::endl;
+    const char* sendCmd = "SEND";
+    send(m_clientSock,sendCmd,strlen(sendCmd),0);      
 
-    while(readbytes != chunkSize*sizeof(float)){
-      receivedBytesChunk = read(m_clientSock,m_sensorData+readbytes,chunkSize*sizeof(float)-readbytes);
-      std::cout<<"Received-----"<<receivedBytesChunk<<std::endl;
+    memset(m_sensorData,0,CHUNKSIZE*sizeof(float));
+    
+    while(readbytes != CHUNKSIZE*sizeof(float)){
+      receivedBytesChunk = read(m_clientSock,m_sensorData+readbytes,CHUNKSIZE*sizeof(float)-readbytes);
       if(receivedBytesChunk > 0)
 	readbytes += receivedBytesChunk;
       else if(receivedBytesChunk == 0){
@@ -70,7 +75,7 @@ class SensorDataSource{
       }      
     }
       
-    for(int i = 0;i<chunkSize;i++){
+    for(int i = 0;i<CHUNKSIZE;i++){
       dataBufferQueue.push(m_sensorData[i]);      
     }    
     return 1;
@@ -80,9 +85,8 @@ class SensorDataSource{
   void clientWorkerThread(){
     while(1){
       std::unique_lock<std::mutex> lk(m_bufferSyncMutex);
-      m_bufferSyncVar.wait(lk,[this](){return dataBufferQueue.size() < 5;});
-      std::cout<<"Getting data from server....";
-      if(readBytesQueue(15)>0){
+      m_bufferSyncVar.wait(lk,[this](){return dataBufferQueue.size() == 0;});
+      if(readBytesQueue()>0){
       }else{
 	std::cout<<"Bytes can not be read from server,terminating thread"<<std::endl;
 	break;
@@ -90,7 +94,6 @@ class SensorDataSource{
       lk.unlock();
       m_bufferSyncVar.notify_all();
     }
-
   }
 
 public:
@@ -115,12 +118,11 @@ public:
     m_bufferSyncVar.wait(lk,[this]{return dataBufferQueue.size() > 0;});    
     float sensorVal = dataBufferQueue.front();
     dataBufferQueue.pop();
+    std::cout<<"size after pop:"<<dataBufferQueue.size()<<std::endl;
     lk.unlock();
     m_bufferSyncVar.notify_all();
     return sensorVal;
   }
-
-
   
   // The size of the buffer 'CHUNKSIZE' should be able to be set and when its filled, this function will return the buffer
   int readBytes(){
@@ -149,12 +151,6 @@ public:
       }      
     }
 
-    for(int i = 0;i<readbytes/(sizeof(float));i=i+3){
-      //      float pitch = (atan2(m_sensorData[i],sqrt(m_sensorData[i+1]*m_sensorData[i+1] + m_sensorData[i+2]*m_sensorData[i+2])) * 180.0f) / PI;
-      //      float roll = (atan2(m_sensorData[i+1],sqrt(m_sensorData[i]*m_sensorData[i] + m_sensorData[i+2]*m_sensorData[i+2])) * 180.0f) / PI;
-      //      std::cout<<"Pitch:"<<pitch<<"  Roll:"<<roll<<std::endl;
-      //      std::cout<<":"<<m_sensorData[i]<<":"<<m_sensorData[i+1]<<":"<<m_sensorData[i+2]<<std::endl;
-    }
     return 1;
   }
   

@@ -263,14 +263,14 @@ int main()
 	// if you do not translate the cube to -3.0 in z axis and rotate it, you will see yourself inside the cube.
 	//Its FUN!!
 	//        view  = glm::translate(view, glm::vec3(0.0f, 0.0f, farPlaneDistance));
-	
-	//	m_gy80SensorData.readBytes();
-	//	float* data = m_gy80SensorData.getSensorData();
-	//	std::cout<<"----->"<<data[0]<<data[1]<<data[2]<<std::endl;
 
-	std::cout<<"Render loop data:"<<m_gy80SensorData.getSingleAxisData()<<std::endl;
-	model = glm::rotate(model,(float)glfwGetTime()*glm::radians(5.0f),glm::vec3(2.0f,1.0f,0.5f));
-        view  = glm::translate(view, glm::vec3(0.0f, 0.0f,-80.0f));
+	float x =  m_gy80SensorData.getSingleAxisData();
+	float y =  m_gy80SensorData.getSingleAxisData();
+	float z =  m_gy80SensorData.getSingleAxisData();
+
+	std::cout<<"x:"<<x<<" y:"<<y<<" z:"<<z<<std::endl;
+        model = glm::rotate(model,(float)glfwGetTime()*glm::radians(50.0f),glm::vec3(z,x,y));
+        view       = glm::translate(view, glm::vec3(0.0f, 0.0f,-80.0f));
         projection = glm::perspective(glm::radians(45.0f), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);  	
 
 	ourShader.setMat4("model",model);	
