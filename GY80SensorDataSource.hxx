@@ -331,7 +331,7 @@ public:
     m_clientThread = std::thread(&SensorDataSource::clientWorkerThread,this);
   }
 
-  GyroData getSingleAxisData(){
+  GyroData getGyroData(){
 
     std::unique_lock<std::mutex> lk(m_bufferSyncMutex);
 

@@ -264,7 +264,7 @@ int main()
 	//Its FUN!!
 	//        view  = glm::translate(view, glm::vec3(0.0f, 0.0f, farPlaneDistance));
 
-	GyroData x =  m_gy80SensorData.getSingleAxisData();
+	GyroData x =  m_gy80SensorData.getGyroData();
 
 	std::cout<<"x:"<<x.xData<<" y:"<<x.yData<<" z:"<<x.zData<<std::endl;
         model = glm::rotate(model,(float)glfwGetTime()*glm::radians(50.0f),glm::vec3(x.zData,x.xData,x.yData));
