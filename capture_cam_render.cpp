@@ -264,12 +264,10 @@ int main()
 	//Its FUN!!
 	//        view  = glm::translate(view, glm::vec3(0.0f, 0.0f, farPlaneDistance));
 
-	float x =  m_gy80SensorData.getSingleAxisData();
-	float y =  m_gy80SensorData.getSingleAxisData();
-	float z =  m_gy80SensorData.getSingleAxisData();
+	GyroData x =  m_gy80SensorData.getSingleAxisData();
 
-	std::cout<<"x:"<<x<<" y:"<<y<<" z:"<<z<<std::endl;
-        model = glm::rotate(model,(float)glfwGetTime()*glm::radians(50.0f),glm::vec3(z,x,y));
+	std::cout<<"x:"<<x.xData<<" y:"<<x.yData<<" z:"<<x.zData<<std::endl;
+        model = glm::rotate(model,(float)glfwGetTime()*glm::radians(50.0f),glm::vec3(x.zData,x.xData,x.yData));
         view       = glm::translate(view, glm::vec3(0.0f, 0.0f,-80.0f));
         projection = glm::perspective(glm::radians(45.0f), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);  	
 
