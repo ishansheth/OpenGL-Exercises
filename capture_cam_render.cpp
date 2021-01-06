@@ -251,7 +251,7 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		
         // activate shader
-        ourShader.use();
+        ourShader.bind();
 
         // create transformations
         glm::mat4 view(1.0f);

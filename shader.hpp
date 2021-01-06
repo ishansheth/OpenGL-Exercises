@@ -98,9 +98,54 @@ public:
             glDeleteShader(geometry);
 
     }
+
+  ~Shader()
+  {
+    glDeleteProgram(ID);
+  }
+  
+  unsigned int compileShader(unsigned int type, const std::string& source)
+  {
+    unsigned int id = glCreateShader(type);
+    const char* src = source.c_str();
+    glShaderSource(id,1,&src,nullptr);
+    glCompileShader(id);
+
+    if(type == GL_VERTEX_SHADER)
+      checkCompileErrors(id, "VERTEX");
+    else if(type == GL_FRAGMENT_SHADER)
+      checkCompileErrors(id, "FRAGMENT");
+
+    return id;
+  }
+  
+  unsigned int createShader(const std::string& vertexshader,const std::string& fragshader)
+  {
+    unsigned int program = glCreateProgram();
+    
+    unsigned int vs = compileShader(GL_VERTEX_SHADER,vertexshader);
+    unsigned int fs = compileShader(GL_FRAGMENT_SHADER,fragshader);
+    
+    glAttachShader(program,vs);
+    glAttachShader(program,fs);
+    glLinkProgram(program);
+    checkCompileErrors(program, "PROGRAM");    
+    //glValidateProgram(program);
+    
+    glDeleteShader(vs);
+    glDeleteShader(fs);
+    
+    return program;
+  }
+  
+  Shader(std::string vertexShaderText, std::string fragmentShaderText)
+  {
+    ID = createShader(vertexShaderText,fragmentShaderText);
+  }
+  
     // activate the shader
     // ------------------------------------------------------------------------
-    void use() 
+    void bind() const
     { 
         glUseProgram(ID); 
     }
@@ -143,7 +188,7 @@ public:
     { 
         glUniform4fv(glGetUniformLocation(ID, name.c_str()), 1, &value[0]); 
     }
-    void setVec4(const std::string &name, float x, float y, float z, float w) 
+    void setVec4(const std::string &name, float x, float y, float z, float w) const
     { 
         glUniform4f(glGetUniformLocation(ID, name.c_str()), x, y, z, w); 
     }

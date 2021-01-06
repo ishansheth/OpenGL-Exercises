@@ -2,6 +2,8 @@
 #define GY80SENSORDATA_HXX_
 
 #include<unistd.h> 
+
+
 #include<stdio.h>
 #include<sys/socket.h>
 #include<netinet/in.h>
@@ -14,6 +16,12 @@
 #define PI 3.14159265
 
 const char* serverIP = "169.254.133.250";
+
+struct GyroData{
+    float xData;
+    float yData;
+    float zData;
+};
 
 static void fillAddr(const std::string& address,unsigned short port,sockaddr_in& addr){
 
@@ -152,7 +160,6 @@ public:
 };
 
 
-/**
 class SensorServerSocketTCP:public SensorSocket{
 
 public:
@@ -166,11 +173,9 @@ public:
     setListen(queuelen);
   }
 
-  ~SensorServerSocketTCP(){
+  ~SensorServerSocketTCP(){}
 
-  }
-
-  void setListen(){
+  void setListen(int queuelen){
     if(listen(m_sockDesc,queuelen)<0){
       std::cerr<<"can not listen for new connection"<<std::endl;      
     }
@@ -178,7 +183,7 @@ public:
 
   SensorSocket* accept(){
     int newSD;
-    if((newSD = accept(m_sockDesc,NULL,0))<0){
+    if((newSD = ::accept(m_sockDesc,NULL,0))<0){
       std::cerr<<"can not accept new connection"<<std::endl;
     }
     return new SensorSocket(newSD);
@@ -189,41 +194,88 @@ public:
 
 class SensorServerSocketUDP:public SensorSocket{
 
-public:
-  SensorServerSocketUDP(unsigned short localPort,int queuelen):SensorSocket(SOCK_STREAM,IPPROTO_UDP){
-    setLocalPort(localPort);
-    setListen(queuelen);
+  void setBroadcast(){
+    int broadcastpermission = 1;
+    setsockopt(m_sockDesc,SOL_SOCKET,SO_BROADCAST,(void*)&broadcastpermission,sizeof(broadcastpermission));
   }
   
-  SensorServerSocketUDP(const std::string& localAddress,unsigned short localPort,int queuelen):SensorSocket(SOCK_STREAM,IPPROTO_TCP){
-    setLocalAddressAndPort(localAddress,localPort);
-    setListen(queuelen);
+public:
+  
+  SensorServerSocketUDP(unsigned short localPort,int queuelen):SensorSocket(SOCK_DGRAM,IPPROTO_UDP){
+    setBroadcast();
+  }
+  
+  SensorServerSocketUDP(const std::string& localAddress,unsigned short localPort,int queuelen):SensorSocket(SOCK_DGRAM,IPPROTO_UDP){
+    setLocalPort(localPort);
+    setBroadcast();
   }
 
   ~SensorServerSocketUDP(){}
 
-  void setListen(){
-    if(listen(m_sockDesc,queuelen)<0){
-      std::cerr<<"can not listen for new connection"<<std::endl;      
+  void disconnect(){
+    sockaddr_in nullAddr;
+    memset(&nullAddr,0,sizeof(nullAddr));
+    nullAddr.sin_family = AF_UNSPEC;
+
+    if(::connect(m_sockDesc,(sockaddr*)&nullAddr,sizeof(nullAddr)) < 0){
+      if(errno != EAFNOSUPPORT)
+	std::cout<<"Disconnect failed"<<std::endl;
     }
   }
 
-  SensorSocket* accept(){
-    int newSD;
-    if((newSD = accept(m_sockDesc,NULL,0))<0){
-      std::cerr<<"can not accept new connection"<<std::endl;
+  void sendTo(const void* buffer,int bufferlen,const std::string& foreignAddress,unsigned short port){
+    sockaddr_in destAddr;
+
+    fillAddr(foreignAddress,port,destAddr);
+
+    if(sendto(m_sockDesc,(void*)buffer,bufferlen,0,(sockaddr*)&destAddr,sizeof(destAddr)) != bufferlen){
+      std::cout<<"sendto failed"<<std::endl;
     }
-    return new SensorSocket(newSD);
   }
 
-};
-**/
+  int recvFrom(void* buffer,int bufferlen,std::string& sourceAddress,unsigned short& sourcePort){
+    sockaddr_in clntAddr;
+    socklen_t addrLen = sizeof(clntAddr);
 
-struct GyroData{
-    float xData;
-    float yData;
-    float zData;
+    int rtn;
+
+    if((rtn = recvfrom(m_sockDesc,(void*)buffer,bufferlen,0,(sockaddr*)&clntAddr,(socklen_t*)&addrLen))<0){
+      std::cout<<"Receive failed"<<std::endl;
+    }
+
+    sourceAddress = inet_ntoa(clntAddr.sin_addr);
+    sourcePort = ntohs(clntAddr.sin_port);
+
+    return rtn;
+  }
+
+  void setMultiCastTTL(unsigned char multicastTTL){
+    if(setsockopt(m_sockDesc,IPPROTO_IP,IP_MULTICAST_TTL,(void*)&multicastTTL,sizeof(multicastTTL))<0)
+      std::cout<<"Multicast TTL failed"<<std::endl;
+  }
+
+  void joinGroup(const std::string& multicastGrp){
+    struct ip_mreq multicastRequest;
+
+    multicastRequest.imr_multiaddr.s_addr = inet_addr(multicastGrp.c_str());
+    multicastRequest.imr_interface.s_addr = htonl(INADDR_ANY);
+
+    if(setsockopt(m_sockDesc,IPPROTO_IP,IP_ADD_MEMBERSHIP,(void*)&multicastRequest,sizeof(multicastRequest))<0)
+      std::cout<<"Multicast group join failed"<<std::endl;
+  }
+
+  void leaveGroup(const std::string& multicastGrp){
+    struct ip_mreq multicastRequest;
+
+    multicastRequest.imr_multiaddr.s_addr = inet_addr(multicastGrp.c_str());
+    multicastRequest.imr_interface.s_addr = htonl(INADDR_ANY);
+
+    if(setsockopt(m_sockDesc,IPPROTO_IP,IP_DROP_MEMBERSHIP,(void*)&multicastRequest,sizeof(multicastRequest))<0)
+      std::cout<<"Multicast group join failed"<<std::endl;
+  }
+  
 };
+
 
 
 class SensorDataSource{
@@ -296,13 +348,15 @@ class SensorDataSource{
     for(int i = 0;i<CHUNKSIZE;i = i+3){
       // creating in place structure
       dataBufferQueue.push({m_sensorData[i],m_sensorData[i+1],m_sensorData[i+2]});      
-    }    
+    }
     return 1;
   }
 
 
   void clientWorkerThread(){
     while(1){
+      std::cout<<"queue size:"<<dataBufferQueue.size()<<std::endl;
+      
       std::unique_lock<std::mutex> lk(m_bufferSyncMutex);
       m_bufferSyncVar.wait(lk,[this](){return dataBufferQueue.size() == 0;});
       if(readBytesQueue()<0){
@@ -310,7 +364,7 @@ class SensorDataSource{
 	break;
       }
       lk.unlock();
-      m_bufferSyncVar.notify_one();
+      m_bufferSyncVar.notify_all();
     }
   }
 
@@ -332,6 +386,7 @@ public:
   }
 
   GyroData getGyroData(){
+    
 
     std::unique_lock<std::mutex> lk(m_bufferSyncMutex);
 
@@ -344,6 +399,7 @@ public:
 
     lk.unlock();
     m_bufferSyncVar.notify_all();
+
     return x;
   }
   

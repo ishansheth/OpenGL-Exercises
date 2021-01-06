@@ -284,7 +284,7 @@ int main(){
       
       //      model = glm::rotate(model,(float)glfwGetTime()*glm::radians(20.0f),glm::vec3(1.0f,0.3f,0.5f));
       smallCubeModel = glm::rotate(smallCubeModel,(float)glfwGetTime()*glm::radians(20.0f),glm::vec3(1.0f,0.3f,0.5f));
-      ourShader.use();
+      ourShader.bind();
       
       ourShader.setMat4("model",roommodel);
       ourShader.setMat4("view",view);
@@ -320,7 +320,7 @@ int main(){
       glBindVertexArray(VAO6);
       glDrawArrays(GL_TRIANGLES,0,6);
       
-      smallCubeShader.use();
+      smallCubeShader.bind();
       smallCubeShader.setMat4("model",smallCubeModel);
       smallCubeShader.setMat4("view",view);
       smallCubeShader.setMat4("projection",projection);
