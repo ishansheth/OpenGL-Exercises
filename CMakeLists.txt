@@ -61,3 +61,10 @@ target_link_libraries(mvpCamCubes ${OPENGL_gl_LIBRARY} glfw GLEW)
 add_executable(lightingCubes cube_lighting.cpp VertexBuffer.h VertexBuffer.cpp IndexBuffer.h IndexBuffer.cpp VertexArray.h VertexArray.cpp VertexBufferLayout.h Renderer.h Renderer.cpp Texture.h Texture.cpp)
 target_link_libraries(lightingCubes ${OPENGL_gl_LIBRARY} glfw GLEW)
 
+
+add_executable(lightingMaterialCubes cube_lighting_with_material.cpp VertexBuffer.h VertexBuffer.cpp IndexBuffer.h IndexBuffer.cpp VertexArray.h VertexArray.cpp VertexBufferLayout.h Renderer.h Renderer.cpp Texture.h Texture.cpp)
+target_link_libraries(lightingMaterialCubes ${OPENGL_gl_LIBRARY} glfw GLEW)
+
+
+add_executable(modelLoading model_loading_lib.cpp model.h mesh.h shader.hpp)
+target_link_libraries(modelLoading ${OPENGL_gl_LIBRARY} glfw GLEW assimp)

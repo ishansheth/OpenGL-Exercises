@@ -55,15 +55,34 @@ std::string vertexshader =
    
 "    gl_Position = projection * view * model * vec4(aPos,1.0);"
 "    fragpos = vec3(model * vec4(aPos,1.0));\n"
-"    Normal = aNormal;"
+"    Normal = aNormal;\n"
 "}\n";
 
 
 std::string fragmentshader =
 
 "#version 330 core\n"
+    "struct Material\n"
+    "{\n"
+    "   vec3 ambient;\n "
+    "   vec3 diffuse;\n"
+    "   vec3 specular;\n"
+    "   float shininess;\n"
+    "};\n"
 
-      "in vec3 Normal;\n"
+    "struct Light \n"
+    "{\n"
+    "   vec3 position;\n"
+  
+    "   vec3 ambient;\n"
+    "   vec3 diffuse;\n"
+    "   vec3 specular;\n"
+    "};\n"
+
+    "uniform Light light;\n"    
+    "uniform Material material;\n"
+  
+    "in vec3 Normal;\n"
     "in vec3 fragpos;\n"
   
     "out vec4 color;\n"
@@ -77,21 +96,19 @@ std::string fragmentshader =
 
 "void main()"
 "{"
-   " float ambientStrength = 0.1;"
-   " vec3 ambient = ambientStrength * lightColor;"
+   " vec3 ambient = light.ambient * material.ambient;"
   	
    " vec3 norm = normalize(Normal);"
    " vec3 lightDir = normalize(lightpos - fragpos);"
    " float diff = max(dot(norm, lightDir), 0.0);"
-   " vec3 diffuse = diff * lightColor;"
+   " vec3 diffuse = light.diffuse * ( diff * material.diffuse);"
     
-   " float specularStrength = 0.5;"
    " vec3 viewDir = normalize(viewpos - fragpos);"
-   " vec3 reflectDir = reflect(-lightDir, norm);  "
-   " float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32); "
-   " vec3 specular = specularStrength * spec * lightColor; " 
+   " vec3 reflectDir = reflect(-lightDir, norm);"
+   " float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess); "
+   " vec3 specular = light.specular * (spec * material.specular); " 
         
-   " vec3 result = (ambient + diffuse + specular) * objectColor;"
+   " vec3 result = (ambient + diffuse + specular);"
    " color = vec4(result, 1.0);"
   "}" ;
 
@@ -124,6 +141,7 @@ std::string fragmentshader_lightsource =
     "{\n"
     "    color = vec4(lightColor, 1.0f);\n"
     "}\n";
+
 
 
 float cube_vertices[] = {
@@ -170,60 +188,6 @@ float cube_vertices[] = {
     -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f
 };
 
-/*
-float cube_vertices[] = {  
-  -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-  0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
-  0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-  -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-  
-  -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-  0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-  0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-  -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
-  
-  -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-  -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-  -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-  -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-  
-  0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-  0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-  0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-  0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-  
-  -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-  0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
-  0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-  -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-  
-  -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-  0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-  0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-  -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
-};
-
-
-unsigned int indices[] = {
-  0,1,2,
-  2,3,0,
-
-  4,5,6,
-  6,7,4,
-
-  8,9,10,
-  10,11,8,
-
-  12,13,14,
-  14,15,12,
-
-  16,17,18,
-  18,19,16,
-
-  20,21,22,
-  22,23,20
-};
-*/
 
 Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
 
@@ -282,6 +246,7 @@ int main()
   else
     std::cout<<"OpenGL window and contex set"<<std::endl;
 
+  ShaderCollection shader_library;
   VertexArray VAO4;
   VertexBuffer vb4(cube_vertices,sizeof(cube_vertices));
 
@@ -291,8 +256,8 @@ int main()
 
   VAO4.addBuffer(vb4,vb_layout4);
 
-  Shader shaders1(vertexshader, fragmentshader);
-  Shader shaders2(vertexshader_lightsource, fragmentshader_lightsource);
+  shader_library.addShader("main_cube", new Shader(vertexshader, fragmentshader));
+  shader_library.addShader("light_source", new Shader(vertexshader_lightsource, fragmentshader_lightsource));
   
   // renderer instance
   Renderer sq_renderer;
@@ -313,44 +278,60 @@ int main()
       sq_renderer.clearWindow();
       glClear(GL_DEPTH_BUFFER_BIT);
 
-      glm::mat4 room_model = glm::mat4(1.0f);
-      room_model = glm::scale(room_model, glm::vec3(3.0,3.0,10.0));
+      glm::mat4 model = glm::mat4(1.0f);
       glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), 800.0f/600.0f, 0.1f, 100.0f);
 
-      const float radius = 15.0f;
+      const float radius = 5.0f;
       float camX = sin(glfwGetTime()) * radius;
       float camZ = cos(glfwGetTime()) * radius;
-      lightPos = glm::vec3(camX, 1.0, camZ);
+      lightPos = glm::vec3(1.2f, 1.0f, 2.0f);
 
       glm::mat4 view = camera.GetViewMatrix();
+      
+      glm::vec3 lightColor;
+      lightColor.x = sin(glfwGetTime() * 2.0f);
+      lightColor.y = sin(glfwGetTime() * 0.7f);
+      lightColor.z = sin(glfwGetTime() * 1.3f);
 
+      glm::vec3 diffuseColor = lightColor * glm::vec3(0.5f);
+      glm::vec3 ambientColor = diffuseColor * glm::vec3(0.2f);
       //glm::mat4 view = glm::lookAt(glm::vec3(-5.0f,5.0f,5.0f),glm::vec3(0.0f,0.0f,0.0f) , glm::vec3(-1.0f,0.0f,0.0f));
 
-      shaders1.bind();
-      shaders1.setMat4("model",room_model);      
-      shaders1.setMat4("view",view);      
-      shaders1.setMat4("projection",projection);
+      shader_library.getShader("main_cube")->bind();
+      shader_library.getShader("main_cube")->setMat4("model",model);      
+      shader_library.getShader("main_cube")->setMat4("view",view);      
+      shader_library.getShader("main_cube")->setMat4("projection",projection);
 
       
-      shaders1.setVec3("lightpos",lightPos);
-      shaders1.setVec3("viewpos",camera.Position);
-      shaders1.setVec3("objectColor",glm::vec3(1.0f, 0.5f, 0.31f));
-      shaders1.setVec3("lightColor",glm::vec3(1.0f, 0.2f, 1.0f));
+      shader_library.getShader("main_cube")->setVec3("lightpos",lightPos);
+      shader_library.getShader("main_cube")->setVec3("viewpos",camera.Position);
+      shader_library.getShader("main_cube")->setVec3("objectColor",glm::vec3(1.0f, 0.5f, 0.31f));
+      shader_library.getShader("main_cube")->setVec3("lightColor",lightColor);
+
+      shader_library.getShader("main_cube")->setVec3("material.ambient",glm::vec3(1.0f,0.5f,0.31f));
+      shader_library.getShader("main_cube")->setVec3("material.diffuse",glm::vec3(1.0f,0.5f,0.31f));
+      shader_library.getShader("main_cube")->setVec3("material.specular",glm::vec3(0.5f,0.5f,0.5f));
+      shader_library.getShader("main_cube")->setFloat("material.shininess",32.0f);
+
+      shader_library.getShader("main_cube")->setVec3("light.ambient", ambientColor);
+      shader_library.getShader("main_cube")->setVec3("light.diffuse", diffuseColor);
+      shader_library.getShader("main_cube")->setVec3("light.specular", glm::vec3(1.0f,1.0f,1.0f));
 
 
-      sq_renderer.drawArray(VAO4,shaders1,36);
+      sq_renderer.drawArray(VAO4,*(shader_library.getShader("main_cube")),36);
 
-      glm::mat4 model = glm::mat4(1.0f);
+      model = glm::mat4(1.0f);
       model = glm::translate(model, lightPos);
       model = glm::scale(model, glm::vec3(0.2f)); // a smaller cube
-	
-      shaders2.bind();
-      shaders2.setMat4("model",model);      
-      shaders2.setMat4("view",view);      
-      shaders2.setMat4("projection",projection);
-      shaders2.setVec3("lightColor",glm::vec3(1.0f, 0.2f, 1.0f));
 
-      sq_renderer.drawArray(VAO4,shaders2,36);
+      
+      shader_library.getShader("light_source")->bind();
+      shader_library.getShader("light_source")->setMat4("model",model);      
+      shader_library.getShader("light_source")->setMat4("view",view);      
+      shader_library.getShader("light_source")->setMat4("projection",projection);
+      shader_library.getShader("light_source")->setVec3("lightColor",lightColor);
+
+      sq_renderer.drawArray(VAO4,*(shader_library.getShader("light_source")),36);
       
       glfwSwapBuffers(window);      
       glfwPollEvents();

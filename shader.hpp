@@ -8,11 +8,15 @@
 #include<GL/glew.h>
 #include<vector>
 #include<glm/glm.hpp>
+#include<map>
+#include<memory>
 
 class Shader
 {
 public:
     unsigned int ID;
+
+  //Shader(){}
     // constructor generates the shader on the fly
     // ------------------------------------------------------------------------
     Shader(const char* vertexPath, const char* fragmentPath, const char* geometryPath = nullptr)
@@ -149,6 +153,29 @@ public:
     { 
         glUseProgram(ID); 
     }
+
+
+
+  template<typename  F, typename ...Args>
+  void setUniformValue(F& f,const std::string& name,  Args&&...args)
+  {
+    f(glGetUniformLocation(ID, name.c_str()), std::forward<Args>(args)...);
+  }
+  
+  template<typename  F, typename T>
+  void setUniformVectorValue(F& f,const std::string& name,  T& args)
+  {
+    f(glGetUniformLocation(ID, name.c_str()), 1, &args[0]);
+  }
+
+  
+  template<typename T>
+  void setUniformMatrixValue(const std::string& name,  const T& args)
+  {
+    
+  }
+
+
     // utility uniform functions
     // ------------------------------------------------------------------------
     void setBool(const std::string &name, bool value) const
@@ -176,7 +203,7 @@ public:
     }
     // ------------------------------------------------------------------------
     void setVec3(const std::string &name, const glm::vec3 &value) const
-    { 
+    {
         glUniform3fv(glGetUniformLocation(ID, name.c_str()), 1, &value[0]); 
     }
     void setVec3(const std::string &name, float x, float y, float z) const
@@ -234,6 +261,35 @@ private:
             }
         }
     }
+};
+
+
+class ShaderCollection
+{
+  std::map<std::string, std::unique_ptr<Shader>> shadercollection;
+  
+public:
+  
+  ShaderCollection(){}
+
+  ~ShaderCollection(){}
+
+  void addShader(const std::string& key, Shader* val)
+  {
+    shadercollection[key] = std::unique_ptr<Shader>(val);
+  }
+
+  Shader* getShader(const std::string& key) const
+  {
+    auto it = shadercollection.find(key);
+    if(it != shadercollection.end())
+      {
+	return (it->second).get(); 
+      }
+    else
+      return nullptr;
+  }
+  
 };
 #endif
 
