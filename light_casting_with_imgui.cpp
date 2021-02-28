@@ -147,7 +147,7 @@ GLFWwindow* initGLFWAndCreateWindow()
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR,3);
   glfwWindowHint(GLFW_OPENGL_PROFILE,GLFW_OPENGL_CORE_PROFILE);
 
-  GLFWwindow* window = glfwCreateWindow(win_width,win_height,"LearnOpenGL",NULL,NULL);
+  GLFWwindow* window = glfwCreateWindow(win_width,win_height,"Light Casting",NULL,NULL);
 
   if(window == NULL)
     {
