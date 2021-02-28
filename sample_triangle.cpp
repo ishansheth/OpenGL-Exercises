@@ -264,7 +264,7 @@ int main(){
 
 
 	// uploading the image data of the texture 1
-	unsigned char* data1 = stbi_load("brickwall.jpg",&width,&height,&nrChannels,0);
+	unsigned char* data1 = stbi_load("texture_collection/brickwall.jpg",&width,&height,&nrChannels,0);
 	if(data1){
 	  	glTexImage2D(GL_TEXTURE_2D,0,GL_RGB,width,height,0,GL_RGB,GL_UNSIGNED_BYTE,data1);
 		glGenerateMipmap(GL_TEXTURE_2D);
@@ -284,7 +284,7 @@ int main(){
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
 	
 	// uploading the image data of the texture 2
-	unsigned char* data2 = stbi_load("awesomeface.png",&width,&height,&nrChannels,0);
+	unsigned char* data2 = stbi_load("texture_collection/awesomeface.png",&width,&height,&nrChannels,0);
 	if(data2){
 	  	glTexImage2D(GL_TEXTURE_2D,0,GL_RGB,width,height,0,GL_RGBA,GL_UNSIGNED_BYTE,data2);
 		glGenerateMipmap(GL_TEXTURE_2D);

@@ -7,7 +7,7 @@
 #include "IndexBuffer.h"
 #include "VertexArray.h"
 #include "VertexBufferLayout.h"
-#include "shader.h"
+#include "shader.hpp"
 #include "Renderer.h"
 #include "Texture.h"
 #include <glm/glm.hpp>
@@ -18,6 +18,8 @@ const unsigned int win_height = 600;
 const unsigned int win_width = 800;
 
 void framebuffer_callback(GLFWwindow* window, int width, int height);
+void mouse_callback(GLFWwindow* window, double xpos, double ypos);
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void processInput(GLFWwindow* window);
 
 
@@ -145,6 +147,10 @@ glm::vec3 cubePositions[] = {
     glm::vec3(-1.3f,  1.0f, -1.5f)  
 };
 
+glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
+glm::vec3 cameraFront = glm::vec3(0.0f,0.0f,-1.0f);
+glm::vec3 cameraUp = glm::vec3(0.0f,1.0f,0.0f);
+
 GLFWwindow* initGLFWAndCreateWindow()
 {
   glfwInit();
@@ -163,6 +169,8 @@ GLFWwindow* initGLFWAndCreateWindow()
 
   glfwMakeContextCurrent(window);
   glfwSetFramebufferSizeCallback(window,framebuffer_callback);
+  glfwSetCursorPosCallback(window, mouse_callback);
+  glfwSetScrollCallback(window, scroll_callback);
 
   // glewInit() must be called after the creation of opengl context
   if (glewInit() != GLEW_OK) {
@@ -178,7 +186,6 @@ GLFWwindow* initGLFWAndCreateWindow()
 
 int main()
 {
-
   GLFWwindow* window = initGLFWAndCreateWindow();
 
   // opengl Error handling
@@ -236,8 +243,8 @@ int main()
 	    model = glm::rotate(model, (float)glfwGetTime(), glm::vec3(1.0f, 0.3f, 0.5f));
 	  else
 	    model = glm::rotate(model,glm::radians(20.0f * i), glm::vec3(1.0f, 0.3f, 0.5f));
-	  
-	  glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f,0.0f,-3.0f));
+	  	  
+	  glm::mat4 view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
 	  
 	  glm::mat4 projection = glm::perspective(glm::radians(45.0f), 800.0f/600.0f, 0.1f, 100.0f);
 	  
@@ -257,19 +264,26 @@ int main()
 
   glfwTerminate();
   return 0;
-
 }
 
-void processInput(GLFWwindow* window)
-{
-  if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-    glfwSetWindowShouldClose(window,true);
-}
 
 void framebuffer_callback(GLFWwindow* window, int width, int height)
 {
   glViewport(0,0,width,height);
 }
 
+void mouse_callback(GLFWwindow* window, double xpos, double ypos)
+{
 
+}
+
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+{
+
+}
+
+void processInput(GLFWwindow* window)
+{
+
+}
 

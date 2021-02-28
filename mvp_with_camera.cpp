@@ -7,7 +7,7 @@
 #include "IndexBuffer.h"
 #include "VertexArray.h"
 #include "VertexBufferLayout.h"
-#include "shader.hpp"
+#include "shader.h"
 #include "Renderer.h"
 #include "Texture.h"
 #include <glm/glm.hpp>
@@ -197,8 +197,8 @@ int main()
   VAO4.addBuffer(vb4,vb_layout4);
   IndexBuffer ib4(indices,36);
 
-  Texture tex1("awesomeface.png");
-  Texture tex2("brickwall.jpg");
+  Texture tex1("texture_collection/awesomeface.png");
+  Texture tex2("texture_collection/brickwall.jpg");
 
   // rectangle 4 end
 

@@ -6,7 +6,7 @@
 #include "IndexBuffer.h"
 #include "VertexArray.h"
 #include "VertexBufferLayout.h"
-#include "shader.hpp"
+#include "shader.h"
 #include "Renderer.h"
 #include "Texture.h"
 #include <glm/glm.hpp>

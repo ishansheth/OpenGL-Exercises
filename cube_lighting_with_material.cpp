@@ -7,7 +7,7 @@
 #include "IndexBuffer.h"
 #include "VertexArray.h"
 #include "VertexBufferLayout.h"
-#include "shader.hpp"
+#include "shader.h"
 #include "Renderer.h"
 #include "Texture.h"
 #include "Camera.h"
@@ -188,7 +188,6 @@ float cube_vertices[] = {
     -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f
 };
 
-
 Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
 
 float lastX = win_width / 2.0f;
@@ -197,6 +196,22 @@ bool firstMouse = true;
 
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
+
+
+std::vector<Vertex> createVertexData()
+{
+  std::vector<Vertex> vBuffer;
+  for(unsigned int i = 0;i < sizeof(cube_vertices); i = i + 6)
+    {
+      Vertex v;
+      v.position = { cube_vertices[i], cube_vertices[i+1], cube_vertices[i+2] };
+      v.isPos = true;
+      v.normal = { cube_vertices[i+3], cube_vertices[i+4], cube_vertices[i+5] };
+      v.isNormal = true;
+      vBuffer.push_back(v);
+    }
+  return vBuffer;
+}
 
 GLFWwindow* initGLFWAndCreateWindow()
 {
@@ -284,7 +299,7 @@ int main()
       const float radius = 5.0f;
       float camX = sin(glfwGetTime()) * radius;
       float camZ = cos(glfwGetTime()) * radius;
-      lightPos = glm::vec3(1.2f, 1.0f, 2.0f);
+      lightPos = glm::vec3(camX, 0.0f, camZ);
 
       glm::mat4 view = camera.GetViewMatrix();
       
@@ -301,7 +316,6 @@ int main()
       shader_library.getShader("main_cube")->setMat4("model",model);      
       shader_library.getShader("main_cube")->setMat4("view",view);      
       shader_library.getShader("main_cube")->setMat4("projection",projection);
-
       
       shader_library.getShader("main_cube")->setVec3("lightpos",lightPos);
       shader_library.getShader("main_cube")->setVec3("viewpos",camera.Position);
@@ -316,7 +330,6 @@ int main()
       shader_library.getShader("main_cube")->setVec3("light.ambient", ambientColor);
       shader_library.getShader("main_cube")->setVec3("light.diffuse", diffuseColor);
       shader_library.getShader("main_cube")->setVec3("light.specular", glm::vec3(1.0f,1.0f,1.0f));
-
 
       sq_renderer.drawArray(VAO4,*(shader_library.getShader("main_cube")),36);
 

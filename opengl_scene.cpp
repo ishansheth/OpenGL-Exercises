@@ -7,7 +7,7 @@
 #include<glm/glm.hpp>
 #include<glm/gtc/matrix_transform.hpp>
 #include<glm/gtc/type_ptr.hpp>
-#include"shader.hpp"
+#include"shader.h"
 
 
 void framebuffer_size_callback(GLFWwindow* window,int width, int height);
@@ -49,7 +49,62 @@ void setVerticesProp(unsigned int* VAO,unsigned int* VBO, float* vertexArray,uns
   glEnableVertexAttribArray(1);
 }
 
+
+unsigned int createTexture(std::string filename)
+{
+    unsigned int texture;
+    glGenTextures(1, &texture);
+    glBindTexture(GL_TEXTURE_2D, texture);
+    // set the texture wrapping parameters
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    // set texture filtering parameters
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    // load image, create texture and generate mipmaps
+    int width, height, nrChannels;
+	
+    // uploading the image data of the texture 1
+    unsigned char* data1 = stbi_load(filename.c_str(),&width,&height,&nrChannels,0);
+    if(data1){
+      
+      GLenum format;
+      if (nrChannels == 1)
+	format = GL_RED;
+      else if (nrChannels == 3)
+	format = GL_RGB;
+      else if (nrChannels == 4)
+	format = GL_RGBA;
+
+      glTexImage2D(GL_TEXTURE_2D,0,format,width,height,0,format,GL_UNSIGNED_BYTE,data1);
+      glGenerateMipmap(GL_TEXTURE_2D);
+    }else{
+      std::cout<<"Could not load "<< filename <<" image"<<std::endl;
+    }
+    stbi_image_free(data1);//free the buffer
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    return texture;
+}
+
+void GLAPIENTRY
+MessageCallback( GLenum source,
+                 GLenum type,
+                 GLuint id,
+                 GLenum severity,
+                 GLsizei length,
+                 const GLchar* message,
+                 const void* userParam )
+{
+  fprintf( stderr, "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n",
+           ( type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : "" ),
+            type, severity, message );
+}
+
+
 int main(){
+
+
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -75,10 +130,12 @@ int main(){
       glfwTerminate();
       return -1;
     }
+  glEnable              ( GL_DEBUG_OUTPUT );
+  glDebugMessageCallback( MessageCallback, 0 );
 
-    Shader ourShader("coordinateSystem.vs", "coordinateSystem.fs");
+    Shader ourShader("shader_collection/coordinateSystem.vs", "shader_collection/coordinateSystem.fs");
 
-    Shader smallCubeShader("coloredCubeObject.vs","coloredCubeObject.fs");
+    Shader smallCubeShader("shader_collection/coloredCubeObject.vs","shader_collection/coloredCubeObject.fs");
 
     float cubeVerticesback[] = {
       // back side
@@ -208,52 +265,11 @@ int main(){
     glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,8*sizeof(float),(void*)0);
     glEnableVertexAttribArray(0);    
 
-
-    unsigned int texture1, texture2;
-    glGenTextures(1, &texture1);
-    glBindTexture(GL_TEXTURE_2D, texture1);
-    // set the texture wrapping parameters
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    // set texture filtering parameters
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    // load image, create texture and generate mipmaps
-    int width, height, nrChannels;
     stbi_set_flip_vertically_on_load(true); 
-	
-    // uploading the image data of the texture 1
-    unsigned char* data1 = stbi_load("brickwall.jpg",&width,&height,&nrChannels,0);
-    if(data1){
-      glTexImage2D(GL_TEXTURE_2D,0,GL_RGB,width,height,0,GL_RGB,GL_UNSIGNED_BYTE,data1);
-      glGenerateMipmap(GL_TEXTURE_2D);
-    }else{
-      std::cout<<"Could not load texture1 image"<<std::endl;
-    }
-    stbi_image_free(data1);//free the buffer
-    
-    glGenTextures(1, &texture2);
-    glBindTexture(GL_TEXTURE_2D, texture2);
-    // set the texture wrapping parameters
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    // set texture filtering parameters
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    // load image, create texture and generate mipmaps
-    // uploading the image data of the texture 2
-    unsigned char* data2 = stbi_load("awesomeface.png",&width,&height,&nrChannels,0);
-    if(data2){
-      glTexImage2D(GL_TEXTURE_2D,0,GL_RGB,width,height,0,GL_RGBA,GL_UNSIGNED_BYTE,data2);
-      glGenerateMipmap(GL_TEXTURE_2D);
-    }else{
-      std::cout<<"Could not load texture2 image"<<std::endl;
-    }
-    stbi_image_free(data2);// free the buffer
-    
-    
-    //    ourShader.use();
- 	
+
+    unsigned int texture2 = createTexture("texture_collection/awesomeface.png");
+    unsigned int texture1 = createTexture("texture_collection/brickwall.jpg");
+    	
     while(!glfwWindowShouldClose(window)){
 
       float currentFrame = glfwGetTime();

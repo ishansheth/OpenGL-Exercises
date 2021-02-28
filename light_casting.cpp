@@ -15,6 +15,10 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include "imgui.h"
+#include "imgui_impl_glfw.h"
+#include "imgui_impl_opengl3.h"
+
 const unsigned int win_height = 600;
 const unsigned int win_width = 800;
 
@@ -84,106 +88,25 @@ float cube_vertices[] = {
     };
 
 
-std::string vertexshader =
-"#version 330 core \n"
+glm::vec3 cubePosition[] = {
+      glm::vec3(0.0f,0.0f,0.0f),
+      glm::vec3(2.0f,5.0f,-15.0f),
+      glm::vec3(-1.5f,-2.2f,-2.5f),
+      glm::vec3(-3.8f,-2.0f,-12.3f),
+      glm::vec3(2.4f,-0.4f,-3.5f),
+      glm::vec3(-1.7f,3.0f,-7.5f),
+      glm::vec3(1.3f,-2.0f,-2.5f),
+      glm::vec3(1.5f,2.0f,-2.5f),
+      glm::vec3(1.5f,0.2f,-1.5f),
+      glm::vec3(-1.3f,1.0f,-1.5f)
+};
 
-"layout(location=0) in vec3 aPos;\n"
-"layout(location = 1) in vec3 aNormal;\n"
-"layout(location = 2) in vec2 aTexCoord;\n"
-
-"uniform mat4 model;\n"
-"uniform mat4 view;\n"
-"uniform mat4 projection;\n"
-
-"out vec3 Normal;\n"
-"out vec3 fragpos;\n"
-"out vec2 TexCoord;\n"
-  
-"void main()\n"
-"{\n"
-   
-"    gl_Position = projection * view * model * vec4(aPos,1.0);"
-"    fragpos = vec3(model * vec4(aPos,1.0));\n"
-"    Normal = aNormal;\n"
-"    TexCoord = aTexCoord;\n"  
-"}\n";
-
-
-
-std::string fragmentshader =
-"#version 330 core\n"
-    "struct Material\n"
-    "{\n"
-    "   sampler2D diffuse;\n"
-    "   sampler2D specular;\n"
-    "   float shininess;\n"
-    "};\n"
-
-    "struct Light \n"
-    "{\n"
-    "   vec3 position;\n"
-  
-    "   vec3 ambient;\n"
-    "   vec3 diffuse;\n"
-    "   vec3 specular;\n"
-    "};\n"
-
-    "uniform Light light;\n"    
-    "uniform Material material;\n"
-    "uniform vec3 viewpos;\n"
-  
-    "in vec3 Normal;\n"
-    "in vec3 fragpos;\n"
-    "in vec2 TexCoord;\n"
-  
-    "out vec4 color;\n"
-  
-"void main()"
-"{"
-   " vec3 ambient = light.ambient * vec3(texture(material.diffuse,TexCoord));"
-  	
-   " vec3 norm = normalize(Normal);"
-   " vec3 lightDir = normalize(light.position - fragpos);"
-   " float diff = max(dot(norm, lightDir), 0.0);"
-   " vec3 diffuse = light.diffuse * diff * vec3(texture(material.diffuse,TexCoord));"
-    
-   " vec3 viewDir = normalize(viewpos - fragpos);"
-   " vec3 reflectDir = reflect(-lightDir, norm);  "
-   " float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess); "
-   " vec3 specular = light.specular * spec * vec3(texture(material.specular,TexCoord)); " 
-        
-   " vec3 result = (ambient + diffuse + specular);"
-   " color = vec4(result, 1.0);"
-  "}" ;
-
-
-
-std::string vertexshader_lightsource =
-"#version 330 core \n"
-
-"layout(location=0) in vec3 aPos;\n"
-"layout(location = 1) in vec3 aNormal;\n"
-
-"uniform mat4 model;\n"
-"uniform mat4 view;\n"
-"uniform mat4 projection;\n"
-  
-"void main()\n"
-"{\n"   
-"    gl_Position = projection * view * model * vec4(aPos,1.0);"
-"}\n";
-
-
-std::string fragmentshader_lightsource =
-  "#version 330 core \n"
-  "\n"
-  
-  "out vec4 color;\n"							     
-  
-  "void main()\n"
-  "{\n"
-  "    color = vec4(1.0);\n"
-  "}\n";
+glm::vec3 pointLightPositions[] = {
+        glm::vec3( 0.7f,  0.2f,  2.0f),
+        glm::vec3( 2.3f, -3.3f, -4.0f),
+        glm::vec3(-4.0f,  2.0f, -12.0f),
+        glm::vec3( 0.0f,  0.0f, -3.0f)
+    };
 
 
 Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
@@ -194,6 +117,8 @@ bool firstMouse = true;
 
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
+
+bool dir_light = true;
 
 GLFWwindow* initGLFWAndCreateWindow()
 {
@@ -227,6 +152,7 @@ GLFWwindow* initGLFWAndCreateWindow()
   return window;
 }
 
+
 int main()
 {
   GLFWwindow* window = initGLFWAndCreateWindow();
@@ -256,21 +182,30 @@ int main()
   Texture specularMap("texture_collection/container2_specular.png");
 
   ShaderCollection shader_library;
-  shader_library.addShader("main_cube", new Shader(vertexshader, fragmentshader));
-  shader_library.addShader("light_source", new Shader(vertexshader_lightsource, fragmentshader_lightsource));
+  shader_library.addShader("multiplelights", new Shader("shader_collection/light_casting_cube.vs", "shader_collection/light_casting_multiple_lights.fs"));
+  
+  shader_library.addShader("light_source", new Shader("shader_collection/light_casting_lightsource.vs", "shader_collection/light_casting_lightsource.fs"));
 
-  shader_library.getShader("main_cube")->bind();
-  shader_library.getShader("main_cube")->setUniformValue(glUniform1i,"material.diffuse",0);
-  shader_library.getShader("main_cube")->setUniformValue(glUniform1i,"material.specular",1);
+  shader_library.getShader("multiplelights")->bind();
+  shader_library.getShader("multiplelights")->setUniformValue(glUniform1i,"material.diffuse",0);
+  shader_library.getShader("multiplelights")->setUniformValue(glUniform1i,"material.specular",1);
 
   Renderer sq_renderer;
-  
-  glm::vec3 lightPos;
-  
-  glEnable(GL_DEPTH_TEST);
 
+  const char* glsl_version = "#version 330";
+  ImGui::CreateContext();
+  ImGui::StyleColorsDark();
+  ImGui_ImplGlfw_InitForOpenGL(window, true);
+  ImGui_ImplOpenGL3_Init(glsl_version);
+ 
+  glm::vec3 lightPos;
+
+  float* light_color = new float[4];
+    
+  glEnable(GL_DEPTH_TEST);
+  
   while(!glfwWindowShouldClose(window))
-    {
+    {      
       glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
       processInput(window);
       sq_renderer.clearWindow();
@@ -280,49 +215,98 @@ int main()
       deltaTime = currentFrame - lastFrame;
       lastFrame = currentFrame;
 
-      shader_library.getShader("main_cube")->bind();
-
-      diffuseMap.bind(0);
-      specularMap.bind(1);
-
       const float radius = 5.0f;
       float camX = sin(glfwGetTime()) * radius;
       float camZ = cos(glfwGetTime()) * radius;
       lightPos = glm::vec3(camX, 0.0f, camZ);
 
-      glm::mat4 model = glm::mat4(1.0f);
+      diffuseMap.bind(0);
+      specularMap.bind(1);
+      
       glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), 800.0f/600.0f, 0.1f, 100.0f);
       glm::mat4 view = camera.GetViewMatrix();
+
       
-      shader_library.getShader("main_cube")->setUniformValue(glUniformMatrix4fv,"model",1,GL_FALSE,&model[0][0]);      
-      shader_library.getShader("main_cube")->setUniformValue(glUniformMatrix4fv,"view",1,GL_FALSE,&view[0][0]);      
-      shader_library.getShader("main_cube")->setUniformValue(glUniformMatrix4fv,"projection",1,GL_FALSE,&projection[0][0]);
+      shader_library.getShader("multiplelights")->bind();
       
-      shader_library.getShader("main_cube")->setVec3("viewpos",camera.Position);
+      shader_library.getShader("multiplelights")->setUniformValue(glUniformMatrix4fv,"view",1,GL_FALSE,&view[0][0]);      
+      shader_library.getShader("multiplelights")->setUniformValue(glUniformMatrix4fv,"projection",1,GL_FALSE,&projection[0][0]);
+      
+      shader_library.getShader("multiplelights")->setVec3("viewpos",camera.Position);
+      shader_library.getShader("multiplelights")->setVec3("LightColor",glm::vec3(light_color[0],light_color[1],light_color[2]));
 
-      shader_library.getShader("main_cube")->setVec3("light.position",lightPos);      
-      shader_library.getShader("main_cube")->setVec3("light.ambient", glm::vec3(0.2f,0.2f,0.2f));
-      shader_library.getShader("main_cube")->setVec3("light.diffuse", glm::vec3(0.5f,0.5f,0.5f));
-      shader_library.getShader("main_cube")->setVec3("light.specular", glm::vec3(1.0f,1.0f,1.0f));
-      shader_library.getShader("main_cube")->setFloat("material.shininess",64.0f);
+      shader_library.getShader("multiplelights")->setFloat("material.shininess",64.0f);
 
-      sq_renderer.drawArray(VAO4,*(shader_library.getShader("main_cube")),36);
+      shader_library.getShader("multiplelights")->setVec3("dirLight.direction",-0.2f,-1.0f,-0.3f);
+      shader_library.getShader("multiplelights")->setVec3("dirLight.ambient",0.05f,0.05f,0.05f);      
+      shader_library.getShader("multiplelights")->setVec3("dirLight.diffuse",0.4f,0.4f,0.4f);
+      shader_library.getShader("multiplelights")->setVec3("dirLight.specular",0.5f,0.5f,0.5f);
+      shader_library.getShader("multiplelights")->setBool("is_dir_light",dir_light);
+      
 
-      model = glm::mat4(1.0f);
-      model = glm::translate(model, lightPos);
-      model = glm::scale(model, glm::vec3(0.2f)); // a smaller cube
+      for(int i = 0; i < 4; i++)
+	{
+	  std::string pointlight_index = "pointLights[" + std::to_string(i) + "]";
+	  shader_library.getShader("multiplelights")->setVec3(pointlight_index + ".position",pointLightPositions[i]);
+	  shader_library.getShader("multiplelights")->setVec3(pointlight_index + ".ambient",0.05f,0.05f,0.05f);
+	  shader_library.getShader("multiplelights")->setVec3(pointlight_index + ".diffuse",0.8f,0.8f,0.8f);
+	  shader_library.getShader("multiplelights")->setVec3(pointlight_index + ".specular",1.0f,1.0f,1.0f);
+	  shader_library.getShader("multiplelights")->setFloat(pointlight_index + ".constant",1.0f);
+	  shader_library.getShader("multiplelights")->setFloat(pointlight_index + ".linear",0.09f);
+	  shader_library.getShader("multiplelights")->setFloat(pointlight_index + ".quadratic",0.032f);	  	  
+	}
+            
+      for(unsigned int i = 0; i<10;i++)
+	{      
+	  glm::mat4 model(1.0f);
+	  model = glm::translate(model,cubePosition[i]);
+	  float angle = 20.0f * i;
+	  
+	  model = glm::rotate(model,glm::radians(angle),glm::vec3(1.0f,0.3f,0.5f));
+	  
+	  shader_library.getShader("multiplelights")->setUniformValue(glUniformMatrix4fv,"model",1,GL_FALSE,&model[0][0]);   	  
+	  sq_renderer.drawArray(VAO4,*(shader_library.getShader("multiplelights")),36);
+	}
+      
+      for(int i = 0; i < 4; i++)
+	{
+	  glm::mat4 model(1.0f);
+	  model = glm::translate(model, pointLightPositions[i]);
+	  model = glm::scale(model, glm::vec3(0.2f)); // a smaller cube
+	  
+	  shader_library.getShader("light_source")->bind();
+	  shader_library.getShader("light_source")->setMat4("model",model);      
+	  shader_library.getShader("light_source")->setMat4("view",view);      
+	  shader_library.getShader("light_source")->setMat4("projection",projection);
+	  shader_library.getShader("light_source")->setVec3("LightColor",glm::vec3(light_color[0],light_color[1],light_color[2]));
+	  
+	  sq_renderer.drawArray(VAO4,*(shader_library.getShader("light_source")),36);
+	}
+
+      /*ImGui Panel code -------START*/
+      
+      ImGui_ImplOpenGL3_NewFrame();      
+      ImGui_ImplGlfw_NewFrame();
+      ImGui::NewFrame();
 	
-      shader_library.getShader("light_source")->bind();
-      shader_library.getShader("light_source")->setMat4("model",model);      
-      shader_library.getShader("light_source")->setMat4("view",view);      
-      shader_library.getShader("light_source")->setMat4("projection",projection);
-
-      sq_renderer.drawArray(VAO4,*(shader_library.getShader("light_source")),36);
+      ImGui::Begin("Light Control Panel");
+      ImGui::Checkbox("Direction Light", &dir_light); 
+      ImGui::ColorEdit4("Light Color", light_color);
+            
+      ImGui::End();
       
+      ImGui::Render();
+      ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+      /*ImGui Panel code -------END*/
+
       glfwSwapBuffers(window);      
       glfwPollEvents();
 
     }
+
+  ImGui_ImplGlfw_Shutdown();
+  ImGui::DestroyContext();
   
   glfwTerminate();
   return 0;
@@ -332,17 +316,21 @@ int main()
 
 void processInput(GLFWwindow* window)
 {
-if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-        glfwSetWindowShouldClose(window, true);
+  if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+    glfwSetWindowShouldClose(window, true);
 
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        camera.ProcessKeyboard(FORWARD, deltaTime);
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        camera.ProcessKeyboard(BACKWARD, deltaTime);
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        camera.ProcessKeyboard(LEFT, deltaTime);
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        camera.ProcessKeyboard(RIGHT, deltaTime); 
+  if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+    camera.ProcessKeyboard(FORWARD, deltaTime);
+  
+  if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+    camera.ProcessKeyboard(BACKWARD, deltaTime);
+  
+  if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+    camera.ProcessKeyboard(LEFT, deltaTime);
+  
+  if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+    camera.ProcessKeyboard(RIGHT, deltaTime);
+
 }
 
 void framebuffer_callback(GLFWwindow* window, int width, int height)
@@ -373,5 +361,4 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
     camera.ProcessMouseScroll(yoffset);
 }
-
 

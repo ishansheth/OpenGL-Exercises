@@ -11,7 +11,7 @@ g++ -o perspectiveRendering <capture_cam_render.cpp> stb_image.h shader.hpp  `pk
 #include<glm/glm.hpp>
 #include<glm/gtc/matrix_transform.hpp>
 #include<glm/gtc/type_ptr.hpp>
-#include"shader.hpp"
+#include"shader.h"
 
 #include "opencv2/opencv.hpp"
 #include <vector>
