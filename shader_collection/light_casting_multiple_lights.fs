@@ -59,8 +59,6 @@ uniform PointLight pointLights[NR_POINT_LIGHTS];
 uniform vec3 viewpos;
 uniform Material material;
 
-//uniform vec3 LightColor[NR_POINT_LIGHTS];
-
 uniform vec3 DirLightColor;
 
 uniform bool is_dir_light;

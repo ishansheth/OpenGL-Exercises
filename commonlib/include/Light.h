@@ -53,112 +53,96 @@ class Light
     return propertyNameMap[p];
   }
   
-  bool setDirectionalLightPara(LightParameters p, const glm::vec3& value)
+  bool setDirectionalLightPara(unsigned int index, LightParameters p, const glm::vec3& value)
   {
-    if(n_dirLight > 1)
+    if(n_dirLight <= 1)
       {
 	std::string uniformName = "dirLight." + getPropertyName(p);
 	shaderObj->setVec3(uniformName,value);
       }
     else
       {
-	for(unsigned int i = 0; i < n_dirLight; i++)
-	  {
-	    std::string uniformName = "dirLight[" + std::to_string(i) + "]." + getPropertyName(p);
-	    shaderObj->setVec3(uniformName,value);
-	  }
+	std::string uniformName = "dirLight[" + std::to_string(index) + "]." + getPropertyName(p);
+	shaderObj->setVec3(uniformName,value);
       }
   }
 
-  bool setPointLightPara(LightParameters p, const glm::vec3& value)
+  bool setPointLightPara(unsigned int index, LightParameters p, const glm::vec3& value)
   {
-    if(n_dirLight > 1)
+    if(n_pointLight <= 1)
       {
 	std::string uniformName = "pointLights." + getPropertyName(p);
 	shaderObj->setVec3(uniformName,value);
       }
     else
       {
-	for(unsigned int i = 0; i < n_pointLight; i++)
-	  {
-	    std::string uniformName = "pointLights[" + std::to_string(i) + "]." + getPropertyName(p);
-	    shaderObj->setVec3(uniformName,value);
-	  }
+	std::string uniformName = "pointLights[" + std::to_string(index) + "]." + getPropertyName(p);
+	shaderObj->setVec3(uniformName,value);
       }
   }
 
-  bool setSpotLightPara(LightParameters p, const glm::vec3& value)
+  bool setSpotLightPara(unsigned int index,LightParameters p, const glm::vec3& value)
   {
-    if(n_dirLight > 1)
+    if(n_spotLight <= 1)
       {
 	std::string uniformName = "spotLight." + getPropertyName(p);
 	shaderObj->setVec3(uniformName,value);
       }
     else
       {
-	for(unsigned int i = 0; i < n_spotLight; i++)
-	  {
-	    std::string uniformName = "spotLight[" + std::to_string(i) + "]." + getPropertyName(p);
-	    shaderObj->setVec3(uniformName,value);
-	  }
+	std::string uniformName = "spotLight[" + std::to_string(index) + "]." + getPropertyName(p);
+	shaderObj->setVec3(uniformName,value);
       }
   }
 
-  bool setDirectionalLightPara(LightParameters p, const float& value)
+  bool setDirectionalLightPara(unsigned int index, LightParameters p, const float& value)
   {
-    if(n_dirLight > 1)
+    if(n_dirLight <= 1)
       {
 	std::string uniformName = "dirLight." + getPropertyName(p);
 	shaderObj->setFloat(uniformName,value);
       }
     else
       {
-	for(unsigned int i = 0; i < n_dirLight; i++)
-	  {
-	    std::string uniformName = "dirLight[" + std::to_string(i) + "]." + getPropertyName(p);
-	    shaderObj->setFloat(uniformName,value);
-	  }
+	std::string uniformName = "dirLight[" + std::to_string(index) + "]." + getPropertyName(p);
+	shaderObj->setFloat(uniformName,value);
       }
   }
 
-  bool setPointLightPara(LightParameters p, const float& value)
+  bool setPointLightPara(unsigned int index, LightParameters p, const float& value)
   {
-    if(n_dirLight > 1)
+    if(n_pointLight <= 1)
       {
 	std::string uniformName = "pointLights." + getPropertyName(p);
 	shaderObj->setFloat(uniformName,value);
       }
     else
       {
-	for(unsigned int i = 0; i < n_pointLight; i++)
-	  {
-	    std::string uniformName = "pointLights[" + std::to_string(i) + "]." + getPropertyName(p);
-	    shaderObj->setFloat(uniformName,value);
-	  }
+	std::string uniformName = "pointLights[" + std::to_string(index) + "]." + getPropertyName(p);
+	shaderObj->setFloat(uniformName,value);
       }
   }
 
-  bool setSpotLightPara(LightParameters p, const float& value)
+  bool setSpotLightPara(unsigned int index, LightParameters p, const float& value)
   {
-    if(n_dirLight > 1)
+    if(n_spotLight <= 1)
       {
 	std::string uniformName = "spotLight." + getPropertyName(p);
 	shaderObj->setFloat(uniformName,value);
       }
     else
       {
-	for(unsigned int i = 0; i < n_spotLight; i++)
-	  {
-	    std::string uniformName = "spotLight[" + std::to_string(i) + "]." + getPropertyName(p);
-	    shaderObj->setFloat(uniformName,value);
-	  }
+	std::string uniformName = "spotLight[" + std::to_string(index) + "]." + getPropertyName(p);
+	shaderObj->setFloat(uniformName,value);
       }
   }
   
  public:
   
   Light(Shader* sh):type(LightType::None),shaderObj(sh)
-  {}
+  {
+    //    shaderObj->bind();
+  }
   
   void setLight(LightType t)
   {
@@ -182,28 +166,90 @@ class Light
   bool setParameter(LightParameters p, const glm::vec3& value)
   {
     if(type == LightType::Directional)
-      return setDirectionalLightPara(p,value);
+      {
+	for(unsigned int i = 0;i<n_dirLight;i++)
+	  setDirectionalLightPara(i,p,value);
+      }
     else if(type == LightType::Point)
-      return setPointLightPara(p,value);
+      {
+	for(unsigned int i = 0;i<n_pointLight;i++)
+	  setPointLightPara(i,p,value);
+      }
     else if(type == LightType::Spot)
-      return setSpotLightPara(p,value);
-    
+      {
+	for(unsigned int i = 0;i<n_spotLight;i++)
+	  setSpotLightPara(i,p,value);
+      }
     return true;
+  }
+  
+  bool setParameter(LightParameters p, const glm::vec3* value)
+  {
+    if(type == LightType::Directional)
+      {
+	for(unsigned int i = 0;i<n_dirLight;i++)
+	  setDirectionalLightPara(i,p,value[i]);
+      }
+    else if(type == LightType::Point)
+      {
+	for(unsigned int i = 0;i<n_pointLight;i++)
+	  setPointLightPara(i,p,value[i]);
+      }
+    else if(type == LightType::Spot)
+      {
+	for(unsigned int i = 0;i<n_spotLight;i++)
+	  setSpotLightPara(i,p,value[i]);
+      }
+
+    return true;
+
   }
   
   bool setParameter(LightParameters p, float value)
   {
     if(type == LightType::Directional)
-      return setDirectionalLightPara(p,value);
+      {
+	for(unsigned int i = 0;i<n_dirLight;i++)
+	  setDirectionalLightPara(i,p,value);
+      }
     else if(type == LightType::Point)
-      return setPointLightPara(p,value);
+      {
+	for(unsigned int i = 0;i<n_pointLight;i++)
+	  setPointLightPara(i,p,value);
+      }
     else if(type == LightType::Spot)
-      return setSpotLightPara(p,value);
+      {
+	for(unsigned int i = 0;i<n_spotLight;i++)
+	  setSpotLightPara(i,p,value);
+      }
     
-    return true;
-    
+    return true;    
   }
 
+
+  bool setParameter(LightParameters p, const float* value)
+  {
+    if(type == LightType::Directional)
+      {
+	for(unsigned int i = 0;i<n_dirLight;i++)
+	  setDirectionalLightPara(i,p,value[i]);
+      }
+    else if(type == LightType::Point)
+      {
+	for(unsigned int i = 0;i<n_pointLight;i++)
+	  setPointLightPara(i,p,value[i]);
+      }
+    else if(type == LightType::Spot)
+      {
+	for(unsigned int i = 0;i<n_spotLight;i++)
+	  setSpotLightPara(i,p,value[i]);
+      }
+
+    return true;
+
+  }
+
+  
   void enable()
   {
 

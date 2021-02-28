@@ -14,6 +14,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include "Light.h"
 
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
@@ -191,13 +192,10 @@ void showImGuiPanel()
 	ImGui::BulletText("Mouse Dective!!");
       else
 	ImGui::BulletText("Mouse Active!!");
-
       
-      ImGui::End();
-      
+      ImGui::End();      
       ImGui::Render();
       ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
 }
 
 int main()
@@ -234,8 +232,6 @@ int main()
   
   shader_library.addShader("light_source", new Shader("shader_collection/light_casting_lightsource.vs", "shader_collection/light_casting_lightsource.fs"));
 
-  //shader_library.addShader("room_env", new Shader("shader_collection/light_casting_room.vs", "shader_collection/light_casting_lightsource.fs"));
-
   shader_library.getShader("multiplelights")->bind();
   shader_library.getShader("multiplelights")->setUniformValue(glUniform1i,"material.diffuse",0);
   shader_library.getShader("multiplelights")->setUniformValue(glUniform1i,"material.specular",1);
@@ -248,10 +244,8 @@ int main()
   ImGui_ImplGlfw_InitForOpenGL(window, true);
   ImGui_ImplOpenGL3_Init(glsl_version);
  
-  glm::vec3 lightPos;
-
   float* light_color = new float[4];
-
+  Light lightObj(shader_library.getShader("multiplelights"));
   
   glEnable(GL_DEPTH_TEST);
   
@@ -285,43 +279,52 @@ int main()
       shader_library.getShader("multiplelights")->setVec3("DirLightColor",glm::vec3(light_color[0],light_color[1],light_color[2]));
 
       shader_library.getShader("multiplelights")->setFloat("material.shininess",64.0f);
-
-      shader_library.getShader("multiplelights")->setVec3("dirLight.direction",-0.2f,-1.0f,-0.3f);
-      shader_library.getShader("multiplelights")->setVec3("dirLight.ambient",0.05f,0.05f,0.05f);      
-      shader_library.getShader("multiplelights")->setVec3("dirLight.diffuse",0.4f,0.4f,0.4f);
-      shader_library.getShader("multiplelights")->setVec3("dirLight.specular",0.5f,0.5f,0.5f);
+      
       shader_library.getShader("multiplelights")->setBool("is_dir_light",dir_light);
-      
-      shader_library.getShader("multiplelights")->setInt("nr_lights",nr_lights);
-      shader_library.getShader("multiplelights")->setInt("light_intensity",light_intensity);
 
-      for(int i = 0; i < 4; i++)
-	{
-	  std::string pointlight_index = "pointLights[" + std::to_string(i) + "]";
-	  shader_library.getShader("multiplelights")->setVec3(pointlight_index + ".position",pointLightPositions[i]);
-	  shader_library.getShader("multiplelights")->setVec3(pointlight_index + ".ambient",0.05f,0.05f,0.05f);
-	  shader_library.getShader("multiplelights")->setVec3(pointlight_index + ".diffuse",0.8f,0.8f,0.8f);
-	  shader_library.getShader("multiplelights")->setVec3(pointlight_index + ".specular",1.0f,1.0f,1.0f);
-	  shader_library.getShader("multiplelights")->setFloat(pointlight_index + ".constant",1.0f);
-	  shader_library.getShader("multiplelights")->setFloat(pointlight_index + ".linear",0.09f);
-	  shader_library.getShader("multiplelights")->setFloat(pointlight_index + ".quadratic",0.032f);
-	  shader_library.getShader("multiplelights")->setVec3(pointlight_index + ".LightColor",pointLightColors[i]);
-	}
+      lightObj.setLight(LightType::Directional);
+      lightObj.setLightNumber(1);
+      lightObj.setParameter(LightParameters::Direction,glm::vec3(-0.2f,-1.0f,-0.3f));
+      lightObj.setParameter(LightParameters::Ambient,glm::vec3(0.05f,0.05f,0.05f));
+      lightObj.setParameter(LightParameters::Diffuse,glm::vec3(0.4f,0.4f,0.4f));
+      lightObj.setParameter(LightParameters::Specular,glm::vec3(0.5f,0.5f,0.5f));
+            
+
+      lightObj.setLight(LightType::Point);
+      lightObj.setLightNumber(4);
+      lightObj.setParameter(LightParameters::Position,pointLightPositions);
+      lightObj.setParameter(LightParameters::Direction,glm::vec3(-0.2f,-1.0f,-0.3f));
+      lightObj.setParameter(LightParameters::Ambient,glm::vec3(0.05f,0.05f,0.05f));
+      lightObj.setParameter(LightParameters::Diffuse,glm::vec3(0.4f,0.4f,0.4f));
+      lightObj.setParameter(LightParameters::Specular,glm::vec3(0.5f,0.5f,0.5f));
+      lightObj.setParameter(LightParameters::Constant,1.0f);
+      lightObj.setParameter(LightParameters::Linear,0.09f);
+      lightObj.setParameter(LightParameters::Quadratic,0.032f);
+      lightObj.setParameter(LightParameters::Color,pointLightColors);
       
+
+      lightObj.setLight(LightType::Spot);
+      lightObj.setLightNumber(1);
+
       float camX = sin(glfwGetTime());
       float camZ = cos(glfwGetTime());
 
-      shader_library.getShader("multiplelights")->setVec3("spotLight.position",spotlightPosition);
-      shader_library.getShader("multiplelights")->setVec3("spotLight.direction",glm::vec3(camX, 0.0, camZ));
-      shader_library.getShader("multiplelights")->setVec3("spotLight.ambient",0.0f,0.0f,0.0f);      
-      shader_library.getShader("multiplelights")->setVec3("spotLight.diffuse",1.0f,1.0f,1.0f);
-      shader_library.getShader("multiplelights")->setVec3("spotLight.specular",1.0f,1.0f,1.0f);
-      shader_library.getShader("multiplelights")->setFloat("spotLight.constant",1.0f);
-      shader_library.getShader("multiplelights")->setFloat("spotLight.linear",0.09f);
-      shader_library.getShader("multiplelights")->setFloat("spotLight.quadratic",0.032f);
-      shader_library.getShader("multiplelights")->setFloat("spotLight.cutoff",glm::cos(glm::radians(12.5f)));
-      shader_library.getShader("multiplelights")->setFloat("spotLight.outercutoff",glm::cos(glm::radians(15.5f)));
-      
+      lightObj.setParameter(LightParameters::Position,spotlightPosition);
+      lightObj.setParameter(LightParameters::Direction,glm::vec3(camX, 0.0, camZ));
+      lightObj.setParameter(LightParameters::Ambient,glm::vec3(0.0f,0.0f,0.0f));
+      lightObj.setParameter(LightParameters::Diffuse,glm::vec3(1.0f,1.0f,1.0f));
+      lightObj.setParameter(LightParameters::Specular,glm::vec3(1.0f,1.0f,1.0f));
+      lightObj.setParameter(LightParameters::Constant,1.0f);
+      lightObj.setParameter(LightParameters::Linear,0.09f);
+      lightObj.setParameter(LightParameters::Quadratic,0.032f);
+      lightObj.setParameter(LightParameters::Color,pointLightColors);
+      lightObj.setParameter(LightParameters::Cutoff,glm::cos(glm::radians(12.5f)));
+      lightObj.setParameter(LightParameters::Outercutoff,glm::cos(glm::radians(12.5f)));
+            
+      shader_library.getShader("multiplelights")->setBool("is_dir_light",dir_light);
+       
+      shader_library.getShader("multiplelights")->setInt("nr_lights",nr_lights);
+      shader_library.getShader("multiplelights")->setInt("light_intensity",light_intensity);
                   
       for(unsigned int i = 0; i<10;i++)
 	{
@@ -387,12 +390,10 @@ int main()
 	  sq_renderer.drawArray(VAO4,*(shader_library.getShader("light_source")),36);
       }
 
-
       /*ImGui Panel code -------START*/
 
       showImGuiPanel();
       
-
       /*ImGui Panel code -------END*/
 
       glfwSwapBuffers(window);      
@@ -413,7 +414,6 @@ void key_callback(GLFWwindow* window,int key, int scancode, int action, int mods
   if(key == GLFW_KEY_SPACE && action == GLFW_PRESS)
     pause_mouse = !pause_mouse;    
 }
-
 
 void processInput(GLFWwindow* window)
 {
@@ -438,7 +438,6 @@ void framebuffer_callback(GLFWwindow* window, int width, int height)
   
   glViewport(0,0,width-imgui_panel_space,height);
 }
-
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 {
