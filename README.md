@@ -1,7 +1,19 @@
-# openGLExercises
-This repository contains the exercises and sample programs which demostrates the basic concepts of graphics programming using openGL
+# OpenGL Exercises
 
-The sample programs and POC is based on the tutorial from https://learnopengl.com/
+This repository contains sample programs which demostrates the basic concepts of graphics programming using openGL. 
+The exerciese include the concepts and usage of:
+  - Vertices and Vertex Arrays
+  - Shader programming
+  - Vertex Buffer, Index Buffer
+  - Camera angles and coordinate system
+  - Texture
+  - Lighting (Ambient, Diffuse and Specular lighting)
+  - Material map
+  - Light Casting
+  - Multiple lights with Directional light and point light
+  
+
+The sample programs are based on the tutorial from https://learnopengl.com/ and incorporates the usage of imgui library
 
 
 Example Result: light_casting_with_imgui.cpp
