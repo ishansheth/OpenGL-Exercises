@@ -18,4 +18,4 @@ This repository contains sample programs which demostrates the basic concepts of
 ![alt text](https://github.com/ishansheth/openGLExercises/blob/master/images/Screenshot%20from%202021-02-28%2020-21-35.png)
 
 ### Example Result: model_loading_lib.cpp
-![alt text](https://github.com/ishansheth/OpenGL-Exercises/blob/master/images/Screenshot%20from%202022-09-02%2000-24-40.png)
+![alt text](https://github.com/ishansheth/OpenGL-Exercises/blob/master/images/Screenshot%20from%202022-09-02%2000-57-58.png)
