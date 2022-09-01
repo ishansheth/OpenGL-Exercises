@@ -16,3 +16,6 @@ This repository contains sample programs which demostrates the basic concepts of
 
 ### Example Result: light_casting_with_imgui.cpp
 ![alt text](https://github.com/ishansheth/openGLExercises/blob/master/images/Screenshot%20from%202021-02-28%2020-21-35.png)
+
+### Example Result: model_loading_lib.cpp
+![alt text](https://github.com/ishansheth/OpenGL-Exercises/blob/master/images/Screenshot%20from%202022-09-02%2000-24-40.png)
