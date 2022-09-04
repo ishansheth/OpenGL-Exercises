@@ -10,6 +10,7 @@ This repository contains sample programs which demostrates the basic concepts of
   - Material map
   - Light Casting
   - Multiple lights with Directional light and point light
+  - Model loading with assimp library
   
 ### Uses
 [Dear ImGui](https://github.com/ocornut/imgui)
